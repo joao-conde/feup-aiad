@@ -2,14 +2,22 @@
 
 ## description
 
-Vários vendedores para o mesmo produto com preços inicias diferentes .
-Um comprador tem uma lista de produtos que pretende comprar.
-Cada produto-vendedor tem um valor mínimo que está disposto a aceitar que é o valor inicial do leilão.
-Um comprador por cada produto-vendedor tem um valor máximo que está disposto a apostar (sendo que os compradores têm perfis diferentes e podem arriscar mais ou menos). Este valor máximo que é medido pelas suas prioridades(preço, reputação do vendedor e tempo de entrega - distancia entre vendedor e o comprador)
-A reputação de um vendedor é dada pelas opiniões de outros compradores do sistema que já lhe compraram algum produto. Caso não exista nenhuma reputação tem um valor médio. A opinião de cada comprador do sistema sobre os vendedores aos quais já comprou algum produto prende-se com o tempo prometido de entrega e do realmente verificado.
-Sempre que um comprador entra no sistema informa o InformationSystemAgent que é responsável por manter registo de todos os vendedores existentes no sistema bem como quais os todos que cada um deles está a vender.
-Existe um agente BidKeeper responsável por gerir as apostas já terminadas e ainda não pagas. Este agente é importante para que se assegure que uma aposta já terminada é efetivamente completada uma vez que um comprador pode apostar em vários leilões ao mesmo tempo e consequentemente, caso ganhe mais do que 1 aposta do mesmo produto abdicar de uma delas. O BidKeeper tem um tempo máximo para manter as apostas ainda não completas. Após esse tempo a aposta é considerada não terminada e o vendedor poderá iniciar novamente a venda dessa.
-O cliente mantém-se no sistema até conseguir comprar todos os produtos que pretende ou até atingir o tempo limite determinado.
+No cenário em questão, um ou mais compradores possuem uma lista de produtos que pretendem comprar. Simultaneamente, vários vendedores anunciarão a venda de diversos produtos a preços iniciais diferentes entre estes.
+
+Cada vendedor tem um valor mínimo para cada produto que vende e que está disposto a aceitar, sendo este o valor inicial do produto em leilão(English auction).
+
+Cada comprador estará disposto a apostar um valor máximo por cada produto associado ao seu vendedor. Os compradores têm perfis diferentes e podem arriscar mais ou menos nesta aposta. Este valor máximo que se dispõe a dar será também influenciado por diferentes métricas. Assim, o preço, a reputação do vendedor e o tempo estimado de entrega influenciarão a decisão do comprador.
+
+A reputação de um vendedor é dada pelas opiniões de outros compradores do sistema que já lhe compraram algum produto. Caso não exista nenhuma reputação prévia terá um valor inicial médio. A opinião de cada comprador do sistema sobre os vendedores aos quais já compraram algum produto é calculada com base no tempo prometido de entrega dos produtos comprados e do tempo realmente verificado.
+
+Sempre que um vendedor entra no sistema informa o InformationSystemAgent que é responsável por manter registo de todos os vendedores existentes bem como quais os produtos que cada um deles está a vender.
+
+Existe um agente BidKeeper responsável por gerir as apostas já terminadas e ainda não pagas. Este agente é importante para que se assegure que uma aposta já terminada seja efetivamente completada uma vez que um comprador pode apostar em vários leilões ao mesmo tempo e consequentemente, caso ganhe mais do que 1 aposta do mesmo produto, abdicar de uma delas. O BidKeeper tem um tempo máximo para manter as apostas ganhas mas ainda não pagas. Após esse periodo, a aposta é considerada não liquidada e o vendedor poderá iniciar novamente a venda desse produto, reiniciando o leilão.
+
+O cliente mantém-se no sistema até conseguir comprar todos os produtos que pretende ou até atingir o tempo limite determinado ou ficar sem orçamento.
+
+
+
 
 -- old version
 
