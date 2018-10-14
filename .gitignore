@@ -1,7 +1,7 @@
 src/bin/
-*/.classpath
-*/.project
-src/APDescription.txt
-src/MTPs-Main-Container.txt
+.classpath
+.project
+APDescription.txt
+MTPs-Main-Container.txt
 .DS_Store
 /bin/
