@@ -1,7 +1,5 @@
 package main;
 
-import jade.core.AgentContainer;
-import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
@@ -14,11 +12,9 @@ public class Market {
 	private ContainerController mainContainer; //Main JADE container
 	 
 	public static void main(String[] args) {
-		Market market = new Market();
+		new Market();
 	}
 	
-	
-
 	public Market() {
 		this.initializeContainers();
 		
