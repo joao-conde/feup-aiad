@@ -1,7 +1,6 @@
 src/bin/
 .classpath
 .project
-APDescription.txt
-MTPs-Main-Container.txt
+*.txt
 .DS_Store
 /bin/
