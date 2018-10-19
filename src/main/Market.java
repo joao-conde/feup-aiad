@@ -38,25 +38,29 @@ public class Market {
 	
 	public void initializeAgents() throws StaleProxyException {
 		
-		
-		AgentController buyer = this.mainContainer.acceptNewAgent("buyerAgent", new BuyerAgent());
+		/*AgentController buyer = this.mainContainer.acceptNewAgent("buyerAgent", new BuyerAgent());
 		buyer.start();
+		*/
 		
-		AgentController buyer2 = this.mainContainer.acceptNewAgent("buyerAgent2", new BuyerAgent());
+		Object[] b1 = {"banana"},
+				 b2 = {"laranja"};
+		
+		AgentController buyer = this.mainContainer.createNewAgent("buyerAgent", "main.BuyerAgent", b1),
+						buyer2 = this.mainContainer.createNewAgent("buyerAgent2", "main.BuyerAgent", b2);
+		
+		buyer.start();
 		buyer2.start();
 		
 		
-		AgentController seller = this.mainContainer.acceptNewAgent("sellerAgent", new SellerAgent());
-		seller.start();
+		Object[] s1 = {"banana"},
+				 s2 = {"laranja"};
 		
-		AgentController seller2 = this.mainContainer.acceptNewAgent("sellerAgent2", new SellerAgent());
+		AgentController seller = this.mainContainer.createNewAgent("sellerAgent", "main.SellerAgent", s1),
+						 seller2 = this.mainContainer.createNewAgent("sellerAgent2", "main.SellerAgent", s2);
+		
+		seller.start();
 		seller2.start();
-		/* Initializing another agent with arguments
-		Object[] agentArgs = new Object[...];
-		AgentController ac2 =
-		container.createNewAgent("name2", "jade.core.Agent", agentArgs);
-		ac2.start();
-		*/
+
 	}
 
 }

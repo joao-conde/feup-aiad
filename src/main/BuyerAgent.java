@@ -9,43 +9,68 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.proto.ContractNetResponder;
 
 public class BuyerAgent extends Agent{
 
 
-	private List<Property> items = new ArrayList<Property>();
+	private ArrayList<ServiceDescription> items = new ArrayList<ServiceDescription>();
 	
 	protected void setup() {	
 		
-		System.out.println("Hello! Buyer-agent "+getAID().getName()+" is ready.");
+		Object[] args = this.getArguments();
+		DFAgentDescription dfd = new DFAgentDescription();
+		dfd.setName(getAID());
 		
-		Property prop_1 = new Property("product", "grande_carlos");
-		items.add(prop_1);
-		Property prop_2 = new Property("product", "grande_vicente");
-		items.add(prop_2);
-		Property prop_3 = new Property("product", "mequie_luis");
-		items.add(prop_3);
-		System.out.println(items.get(0));
-		
-		// Register the book-selling service in the yellow pages
-	    DFAgentDescription dfd = new DFAgentDescription();
-	    dfd.setName(getAID());
-	    ServiceDescription sd = new ServiceDescription();
-	    sd.setType("selling");
-	    sd.setName("JADE-trading");
-	    
-	    //Add products as properties
-	    for(Property item: items) {
-			sd.addProperties(item);
+		System.out.println("Hello! Im buyer-agent " +getAID().getLocalName()+" is ready.");
+		for(Object arg: args) {
+			ServiceDescription sd = new ServiceDescription();
+			sd.setType("buying");
+			sd.setName(arg.toString());
+			dfd.addServices(sd);
+			System.out.println(arg);
 		}
-	   
-	    dfd.addServices(sd);
+		
 	    try {
 	      DFService.register(this, dfd);
 	    }
 	    catch (FIPAException fe) {
 	      fe.printStackTrace();
 	    }
+	    
+	    addBehaviour(new FIPAContractNetResp(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	}
+	
+	private class FIPAContractNetResp extends ContractNetResponder {
+
+		public FIPAContractNetResp(Agent a, MessageTemplate mt) {
+			super(a, mt);
+		}
+		
+		
+		protected ACLMessage handleCfp(ACLMessage cfp) {
+			ACLMessage reply = cfp.createReply();
+			reply.setPerformative(ACLMessage.PROPOSE);
+			reply.setContent("I will do it for free!!!");
+			return reply;
+		}
+		
+		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+			System.out.println(myAgent.getLocalName() + " got a reject...");
+		}
+
+		protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
+			System.out.println(myAgent.getLocalName() + " got an accept!");
+			ACLMessage result = accept.createReply();
+			result.setPerformative(ACLMessage.INFORM);
+			result.setContent("this is the result");
+			
+			return result;
+		}
+
+	}
+	
 	
 }
