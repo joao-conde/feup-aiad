@@ -1,5 +1,6 @@
 package main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Vector;
@@ -14,19 +15,21 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
 public class SellerAgent extends Agent {
 
-	private ArrayList<String> itemsToSell = new ArrayList<String>();
-	private String currentItem;
+	private ArrayList<Item> itemsToSell = new ArrayList<Item>();
+	private Item currentItem;
 	private AID[] buyerAgents;
 
 	public void setup() {
 
 		Object[] args = this.getArguments();
 		for(Object arg: args) {
-			itemsToSell.add(arg.toString());
+			Item product = (Item)arg;
+			itemsToSell.add(product);
 		}
 		
 		currentItem = itemsToSell.get(0);
@@ -56,7 +59,7 @@ public class SellerAgent extends Agent {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("buying");
-			sd.setName(currentItem);
+			sd.setName(currentItem.getName());
 			template.addServices(sd);
 
 			System.out.println(currentItem);
@@ -92,7 +95,12 @@ public class SellerAgent extends Agent {
 			for(AID aid: buyerAgents) {
 				cfp.addReceiver(aid);
 			}
-			cfp.setContent("this is a call...");
+			try {
+				cfp.setContentObject(currentItem);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 			v.add(cfp);
 			
@@ -104,7 +112,8 @@ public class SellerAgent extends Agent {
 			System.out.println("got " + responses.size() + " responses!");
 			
 			for(int i=0; i<responses.size(); i++) {
-				ACLMessage msg = ((ACLMessage) responses.get(i)).createReply();
+				ACLMessage response = ((ACLMessage) responses.get(i));
+				ACLMessage msg = response.createReply();
 				msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
 				acceptances.add(msg);
 			}

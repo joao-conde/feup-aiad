@@ -1,8 +1,11 @@
 package main;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -11,12 +14,14 @@ import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetResponder;
 
 public class BuyerAgent extends Agent{
 
 
-	private ArrayList<ServiceDescription> items = new ArrayList<ServiceDescription>();
+	private ArrayList<Item> items = new ArrayList<Item>();
+	//private HashMap<AID, Integer> sellersOpinion = new HashMap<AID,Integer>();
 	
 	protected void setup() {	
 		
@@ -26,11 +31,14 @@ public class BuyerAgent extends Agent{
 		
 		System.out.println("Hello! Im buyer-agent " +getAID().getLocalName()+" is ready.");
 		for(Object arg: args) {
+			Item item = (Item) arg;
+			items.add(item);
+			
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("buying");
-			sd.setName(arg.toString());
+			sd.setName(item.getName().toString());
 			dfd.addServices(sd);
-			System.out.println(arg);
+			System.out.println(item.getName());
 		}
 		
 	    try {
@@ -51,9 +59,19 @@ public class BuyerAgent extends Agent{
 		
 		
 		protected ACLMessage handleCfp(ACLMessage cfp) {
+			
 			ACLMessage reply = cfp.createReply();
 			reply.setPerformative(ACLMessage.PROPOSE);
-			reply.setContent("I will do it for free!!!");
+			
+			try {
+				Item itemDeserialized = (Item) cfp.getContentObject();
+				Item itemToProposeTo = items.get(items.indexOf(itemDeserialized));
+				reply.setContent("Teste");
+				
+			} catch (UnreadableException e) {
+				e.printStackTrace();
+			}
+
 			return reply;
 		}
 		
