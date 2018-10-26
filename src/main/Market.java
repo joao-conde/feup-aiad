@@ -1,7 +1,7 @@
 package main;
 
+import java.util.AbstractMap.SimpleEntry;
 import java.util.List;
-import java.util.Map;
 
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -42,9 +42,9 @@ public class Market {
 		buyer.start();
 		*/
 		
-		Item[] b1 = {new Item("banana",20), new Item("pessego",40)},
-			   b2 = {new Item("banana",16), new Item("morango",30)},
-			   b3 = {new Item("pessego",(float)12.5), new Item("pera",(float)22.6)};
+		String[] b1 = {"banana", "pessego"},
+			   b2 = {"banana", "morango"},
+			   b3 = {"pessego", "pera"};
 		
 		AgentController buyer = this.mainContainer.createNewAgent("buyerAgent", "main.BuyerAgent", b1),
 						buyer2 = this.mainContainer.createNewAgent("buyerAgent2", "main.BuyerAgent", b2),
@@ -54,12 +54,11 @@ public class Market {
 		buyer2.start();
 		buyer3.start();
 		
-		
-		Object[] s1 = {new Item("banana",10)},
-				 s2 = {new Item("laranja",12)};
+		Bid[] s1 = {new Bid("banana", (float)10.0)},
+				 s2 = {new Bid("laranja",(float)12)};
 		
 		AgentController seller = this.mainContainer.createNewAgent("sellerAgent", "main.SellerAgent", s1),
-						 seller2 = this.mainContainer.createNewAgent("sellerAgent2", "main.SellerAgent", s2);
+						seller2 = this.mainContainer.createNewAgent("sellerAgent2", "main.SellerAgent", s2);
 		
 		seller.start();
 		seller2.start();

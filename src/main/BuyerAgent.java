@@ -20,7 +20,7 @@ import jade.proto.ContractNetResponder;
 public class BuyerAgent extends Agent{
 
 
-	private ArrayList<Item> items = new ArrayList<Item>();
+	private ArrayList<String> items = new ArrayList<String>();
 	//private HashMap<AID, Integer> sellersOpinion = new HashMap<AID,Integer>();
 	
 	protected void setup() {	
@@ -31,14 +31,14 @@ public class BuyerAgent extends Agent{
 		
 		System.out.println("Hello! Im buyer-agent " +getAID().getLocalName()+" is ready.");
 		for(Object arg: args) {
-			Item item = (Item) arg;
-			items.add(item);
+			String argument = (String) arg;
+			items.add(argument);
 			
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("buying");
-			sd.setName(item.getName().toString());
+			sd.setName(argument);
 			dfd.addServices(sd);
-			System.out.println(item.getName());
+			System.out.println(argument);
 		}
 		
 	    try {
@@ -53,6 +53,8 @@ public class BuyerAgent extends Agent{
 	
 	private class FIPAContractNetResp extends ContractNetResponder {
 
+		private static final long serialVersionUID = 1L;
+
 		public FIPAContractNetResp(Agent a, MessageTemplate mt) {
 			super(a, mt);
 		}
@@ -64,11 +66,11 @@ public class BuyerAgent extends Agent{
 			reply.setPerformative(ACLMessage.PROPOSE);
 			
 			try {
-				Item itemDeserialized = (Item) cfp.getContentObject();
-				Item itemToProposeTo = items.get(items.indexOf(itemDeserialized));
-				reply.setContent("Teste");
+				Bid receivedBid = (Bid) cfp.getContentObject();
+				receivedBid.setNewValue(receivedBid.getValue()+1);
+				reply.setContentObject(receivedBid);
 				
-			} catch (UnreadableException e) {
+			} catch (UnreadableException | IOException e) {
 				e.printStackTrace();
 			}
 

@@ -2,7 +2,6 @@ package main;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Vector;
 
 import jade.core.AID;
@@ -12,7 +11,6 @@ import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.UnreadableException;
@@ -20,19 +18,21 @@ import jade.proto.ContractNetInitiator;
 
 public class SellerAgent extends Agent {
 
-	private ArrayList<Item> itemsToSell = new ArrayList<Item>();
-	private Item currentItem;
-	private AID[] buyerAgents;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	private ArrayList<Bid> bids = new ArrayList<Bid>();
+	private Integer currentBidIndex = 0;
+	private AID[] buyerAgentsToCurrentItem;
 
 	public void setup() {
 
 		Object[] args = this.getArguments();
 		for(Object arg: args) {
-			Item product = (Item)arg;
-			itemsToSell.add(product);
+			Bid bid = (Bid)arg;
+			bids.add(bid);
 		}
-		
-		currentItem = itemsToSell.get(0);
 		
 		SequentialBehaviour fetchAndPropose = new SequentialBehaviour();
 		FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(this, 3000);
@@ -43,8 +43,24 @@ public class SellerAgent extends Agent {
 		addBehaviour(fetchAndPropose);
 
 	}
+	
+	public Bid getCurrentBid() {
+		return bids.get(currentBidIndex);
+	}
+	
+	public void updateCurrentBid(float value, String bidder) {
+		Bid bid = getCurrentBid();
+		bid.setNewValue(value);
+		bid.setLastBidder(bidder);
+	}
+	
 
 	private class FetchBuyersBehaviour extends TickerBehaviour {
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 
 		public FetchBuyersBehaviour(Agent a, long period) {
 			super(a, period);
@@ -59,15 +75,16 @@ public class SellerAgent extends Agent {
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("buying");
-			sd.setName(currentItem.getName());
+			sd.setName(getCurrentBid().getItem());
 			template.addServices(sd);
 
-			System.out.println(currentItem);
+			System.out.println(getCurrentBid().getItem());
+			
 			try {
 				DFAgentDescription[] result = DFService.search(myAgent, template);
-				buyerAgents = new AID[result.length];
+				buyerAgentsToCurrentItem = new AID[result.length];
 				for (int i = 0; i < result.length; ++i) {
-					buyerAgents[i] = result[i].getName();
+					buyerAgentsToCurrentItem[i] = result[i].getName();
 				}
 				
 				if (result.length > 1) {
@@ -85,18 +102,24 @@ public class SellerAgent extends Agent {
 	
 	private class FIPAContractNetInit extends ContractNetInitiator {
 
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+
 		public FIPAContractNetInit(Agent a, ACLMessage msg) {
 			super(a, msg);
 		}
 
-		protected Vector prepareCfps(ACLMessage cfp) {
-			Vector v = new Vector();
+		protected Vector<ACLMessage> prepareCfps(ACLMessage cfp) {
+			Vector<ACLMessage> v = new Vector<ACLMessage>();
 			
-			for(AID aid: buyerAgents) {
+			for(AID aid: buyerAgentsToCurrentItem) {
 				cfp.addReceiver(aid);
 			}
+			
 			try {
-				cfp.setContentObject(currentItem);
+				cfp.setContentObject(bids.get(currentBidIndex));
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -113,6 +136,27 @@ public class SellerAgent extends Agent {
 			
 			for(int i=0; i<responses.size(); i++) {
 				ACLMessage response = ((ACLMessage) responses.get(i));
+				Bid receivedBid;
+				try {
+					
+					receivedBid = (Bid) response.getContentObject();
+					if(receivedBid.isGreaterThan(getCurrentBid())) {
+						updateCurrentBid(receivedBid.getValue(), response.getSender().getLocalName());
+						
+						ACLMessage msg = response.createReply();
+						msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
+						acceptances.add(msg);
+						
+					} else {
+						
+						
+					}
+					
+				} catch (UnreadableException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
 				ACLMessage msg = response.createReply();
 				msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
 				acceptances.add(msg);
