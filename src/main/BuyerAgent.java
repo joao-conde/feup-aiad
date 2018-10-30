@@ -1,27 +1,29 @@
 package main;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.AbstractMap.SimpleEntry;
 import java.util.HashMap;
 
-import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.Property;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetResponder;
+import jade.proto.SSContractNetResponder;
+import jade.proto.SSIteratedContractNetResponder;
+import jade.proto.SSResponderDispatcher;
 
 public class BuyerAgent extends Agent{
 
 
-	private ArrayList<String> items = new ArrayList<String>();
-	//private HashMap<AID, Integer> sellersOpinion = new HashMap<AID,Integer>();
+	private static final long serialVersionUID = 4237051775444259812L;
+	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
+	private String agentName;
 	
 	protected void setup() {	
 		
@@ -29,16 +31,17 @@ public class BuyerAgent extends Agent{
 		DFAgentDescription dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		
-		System.out.println("Hello! Im buyer-agent " +getAID().getLocalName()+" is ready.");
+		agentName = this.getLocalName();
+		
 		for(Object arg: args) {
-			String argument = (String) arg;
-			items.add(argument);
+			SimpleEntry<String,Float> argument = (SimpleEntry<String,Float>) arg;
+			items.put(argument.getKey(), argument.getValue());
+			
 			
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType("buying");
-			sd.setName(argument);
+			sd.setName(argument.getKey());
 			dfd.addServices(sd);
-			System.out.println(argument);
 		}
 		
 	    try {
@@ -48,48 +51,93 @@ public class BuyerAgent extends Agent{
 	      fe.printStackTrace();
 	    }
 	    
-	    addBehaviour(new FIPAContractNetResp(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
+	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	}
 	
-	private class FIPAContractNetResp extends ContractNetResponder {
+	private class CFPDispatcher extends SSResponderDispatcher {
 
-		private static final long serialVersionUID = 1L;
 
-		public FIPAContractNetResp(Agent a, MessageTemplate mt) {
-			super(a, mt);
+		public CFPDispatcher(Agent a, MessageTemplate tpl) {
+			super(a, tpl);
+		}
+
+
+		@Override
+		protected Behaviour createResponder(ACLMessage cfp) {
+			return new FIPAIteratedContractedNet(myAgent,cfp);
+			
 		}
 		
 		
-		protected ACLMessage handleCfp(ACLMessage cfp) {
+		private class FIPAIteratedContractedNet extends SSIteratedContractNetResponder {
+
+			public FIPAIteratedContractedNet(Agent a, ACLMessage cfp) {
+				super(a, cfp);
+			}
 			
-			ACLMessage reply = cfp.createReply();
-			reply.setPerformative(ACLMessage.PROPOSE);
-			
-			try {
-				Bid receivedBid = (Bid) cfp.getContentObject();
-				receivedBid.setNewValue(receivedBid.getValue()+1);
-				reply.setContentObject(receivedBid);
+			protected ACLMessage handleCfp(ACLMessage cfp) {
 				
-			} catch (UnreadableException | IOException e) {
-				e.printStackTrace();
+				
+				ACLMessage reply = cfp.createReply();
+				
+				try {
+					Bid receivedBid = (Bid) cfp.getContentObject();
+					
+					System.out.println(agentName+": Received a CFP from "+cfp.getSender().getLocalName()+" to "+receivedBid.getItem());
+					
+					String lastBidderName=null;
+					reply.setPerformative(ACLMessage.PROPOSE);
+					
+					if((lastBidderName = receivedBid.getLastBidder()) != null) {
+						
+						//This agent is not the currrent winner
+						System.out.println(agentName+": LastHighest was "+lastBidderName);
+						if(!lastBidderName.equals(agentName)) {
+							
+							if(receivedBid.getValue() + receivedBid.getMinIncrease() <= items.get(receivedBid.getItem()))
+								receivedBid.setNewValue(round(receivedBid.getValue()+receivedBid.getMinIncrease(), 3));
+							else
+								reply.setPerformative(ACLMessage.REFUSE);
+						}
+						
+					} else {
+						//first bid (cfp call)
+						if(receivedBid.getValue() > items.get(receivedBid.getItem()))
+							reply.setPerformative(ACLMessage.REFUSE); //first value is already too high
+					}
+					reply.setContentObject(receivedBid);
+					System.out.println(agentName+": Propose to "+receivedBid.getItem()+" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
+					
+				} catch (UnreadableException | IOException e) {
+					e.printStackTrace();
+				}
+				
+				return reply;
+			}
+			
+			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+				System.out.println(myAgent.getLocalName() + " got a reject...");
 			}
 
-			return reply;
-		}
-		
-		protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-			System.out.println(myAgent.getLocalName() + " got a reject...");
-		}
-
-		protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
-			System.out.println(myAgent.getLocalName() + " got an accept!");
-			ACLMessage result = accept.createReply();
-			result.setPerformative(ACLMessage.INFORM);
-			result.setContent("this is the result");
+			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
+				System.out.println(myAgent.getLocalName() + " got an accept!");
+				ACLMessage result = accept.createReply();
+				result.setPerformative(ACLMessage.INFORM);
+				result.setContent("this is the result");
+				
+				return result;
+			}
 			
-			return result;
 		}
 
+	}
+	
+	public static float round(float number, int scale) {
+	    int pow = 10;
+	    for (int i = 1; i < scale; i++)
+	        pow *= 10;
+	    float tmp = number * pow;
+	    return ( (float) ( (int) ((tmp - (int) tmp) >= 0.5f ? tmp + 1 : tmp) ) ) / pow;
 	}
 	
 	

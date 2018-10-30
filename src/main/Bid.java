@@ -2,15 +2,19 @@ package main;
 
 public class Bid implements java.io.Serializable{
 	
-
-	private static final long serialVersionUID = 1L;
-	private float value;
-	private String itemID;
-	private String lastBidder;
 	
-	public Bid(String item, float value) {
+	private static final long serialVersionUID = -8354813310432147997L;
+	private float value=111111; //euros
+	private float minIncrease; //minimum value that a buyer has to increase to the last value
+	private String itemID; //item name
+	private String lastBidder; //propose agent name
+	private int deliveryTime; //days
+	
+	public Bid(String item, float value, int deliveryTime, float minIncrease) {
 		this.itemID = item;
 		this.value = value;
+		this.deliveryTime = deliveryTime;
+		this.minIncrease = minIncrease;
 		this.lastBidder = null;
 	}
 	
@@ -34,9 +38,12 @@ public class Bid implements java.io.Serializable{
 		return this.lastBidder;
 	}
 	
-
-	public boolean isGreaterThan(Bid bid) {
-		return this.value > bid.getValue();
+	public int getDeliveryTime() {
+		return this.deliveryTime;
+	}
+	
+	public float getMinIncrease() {
+		return this.minIncrease;
 	}
 	
 

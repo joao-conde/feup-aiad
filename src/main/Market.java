@@ -1,7 +1,6 @@
 package main;
 
 import java.util.AbstractMap.SimpleEntry;
-import java.util.List;
 
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -31,38 +30,37 @@ public class Market {
 	public void initializeContainers() {
 		this.jadeRt = Runtime.instance();
 		this.mainContainer = jadeRt.createMainContainer(new ProfileImpl());
-		/*	Creating a new container, must pass different ProfileImpl and cannot be a main container
-		ContainerController container = jadeRt.createAgentContainer(new ProfileImpl());
-		*/
 	}
 	
 	public void initializeAgents() throws StaleProxyException {
+
 		
-		/*AgentController buyer = this.mainContainer.acceptNewAgent("buyerAgent", new BuyerAgent());
-		buyer.start();
-		*/
+		Object[] b1 = {new SimpleEntry<String,Float>("banana",(float)11.20), new SimpleEntry<String,Float>("pessego",(float)12.00)},
+			   b2 = {new SimpleEntry<String,Float>("banana", (float) 10.10), new SimpleEntry<String,Float>("morango", (float) 15.30)},
+			   b3 = {new SimpleEntry<String,Float>("pessego", (float) 13.00), new SimpleEntry<String,Float>("pera", (float) 12.50)};
 		
-		String[] b1 = {"banana", "pessego"},
-			   b2 = {"banana", "morango"},
-			   b3 = {"pessego", "pera"};
-		
+		//create new buyer agents
 		AgentController buyer = this.mainContainer.createNewAgent("buyerAgent", "main.BuyerAgent", b1),
 						buyer2 = this.mainContainer.createNewAgent("buyerAgent2", "main.BuyerAgent", b2),
 						buyer3 = this.mainContainer.createNewAgent("buyerAgent3", "main.BuyerAgent", b3);
 		
+		//start new buyer agents 
 		buyer.start();
 		buyer2.start();
 		buyer3.start();
 		
-		Bid[] s1 = {new Bid("banana", (float)10.0)},
-				 s2 = {new Bid("laranja",(float)12)};
+		Bid[] s1 = {new Bid("banana", (float)9.00, 10,(float)0.05)},
+			s2 = {new Bid("laranja",(float)12.00, 5,(float)0.10)};
 		
+		//create new seller agents
 		AgentController seller = this.mainContainer.createNewAgent("sellerAgent", "main.SellerAgent", s1),
 						seller2 = this.mainContainer.createNewAgent("sellerAgent2", "main.SellerAgent", s2);
 		
+		//start new sellers
 		seller.start();
 		seller2.start();
 
 	}
+
 
 }

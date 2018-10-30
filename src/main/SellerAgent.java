@@ -18,13 +18,13 @@ import jade.proto.ContractNetInitiator;
 
 public class SellerAgent extends Agent {
 
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+
+	private static final long serialVersionUID = 7888357163660384182L;
 	private ArrayList<Bid> bids = new ArrayList<Bid>();
 	private Integer currentBidIndex = 0;
 	private AID[] buyerAgentsToCurrentItem;
+	private Bid highestBid = null;
+	private String agentName;
 
 	public void setup() {
 
@@ -33,6 +33,8 @@ public class SellerAgent extends Agent {
 			Bid bid = (Bid)arg;
 			bids.add(bid);
 		}
+		
+		agentName = this.getLocalName();
 		
 		SequentialBehaviour fetchAndPropose = new SequentialBehaviour();
 		FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(this, 3000);
@@ -57,10 +59,8 @@ public class SellerAgent extends Agent {
 
 	private class FetchBuyersBehaviour extends TickerBehaviour {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
+
+		private static final long serialVersionUID = 346234499297083722L;
 
 		public FetchBuyersBehaviour(Agent a, long period) {
 			super(a, period);
@@ -69,7 +69,6 @@ public class SellerAgent extends Agent {
 		@Override
 		protected void onTick() {
 			
-			System.out.println("ONTICK");
 
 			// Update the list of seller agents
 			DFAgentDescription template = new DFAgentDescription();
@@ -78,7 +77,6 @@ public class SellerAgent extends Agent {
 			sd.setName(getCurrentBid().getItem());
 			template.addServices(sd);
 
-			System.out.println(getCurrentBid().getItem());
 			
 			try {
 				DFAgentDescription[] result = DFService.search(myAgent, template);
@@ -102,16 +100,16 @@ public class SellerAgent extends Agent {
 	
 	private class FIPAContractNetInit extends ContractNetInitiator {
 
-		/**
-		 * 
-		 */
-		private static final long serialVersionUID = 1L;
+		
+		private static final long serialVersionUID = -1202893268098205290L;
 
 		public FIPAContractNetInit(Agent a, ACLMessage msg) {
 			super(a, msg);
 		}
 
 		protected Vector<ACLMessage> prepareCfps(ACLMessage cfp) {
+			
+
 			Vector<ACLMessage> v = new Vector<ACLMessage>();
 			
 			for(AID aid: buyerAgentsToCurrentItem) {
@@ -119,13 +117,17 @@ public class SellerAgent extends Agent {
 			}
 			
 			try {
-				cfp.setContentObject(bids.get(currentBidIndex));
+				Bid bid = bids.get(currentBidIndex);
+				cfp.setContentObject(bid);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
 			v.add(cfp);
+			
+			//e.g. Seller2: started an auction of bananas
+			System.out.println(agentName+": started an auction of "+bids.get(currentBidIndex).getItem());
 			
 			return v;
 		}
@@ -138,28 +140,58 @@ public class SellerAgent extends Agent {
 				ACLMessage response = ((ACLMessage) responses.get(i));
 				Bid receivedBid;
 				try {
+					if(response.getPerformative() == ACLMessage.REFUSE) {
+						System.out.println(agentName+": Received "+ACLMessage.REFUSE+" from "+response.getSender().getLocalName());
+						continue;
 					
-					receivedBid = (Bid) response.getContentObject();
-					if(receivedBid.isGreaterThan(getCurrentBid())) {
-						updateCurrentBid(receivedBid.getValue(), response.getSender().getLocalName());
+					} else if(response.getPerformative() == ACLMessage.PROPOSE){
+						receivedBid = (Bid) response.getContentObject();
+						System.out.println(agentName+": "+response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
+						if(highestBid != null) {
+							
+							if(receivedBid.getValue() > highestBid.getValue()) {
+								highestBid = receivedBid;
+								highestBid.setLastBidder(response.getSender().getLocalName());
+								System.out.println("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
+							}
+							
+						} else {
+							highestBid = receivedBid;
+							highestBid.setLastBidder(response.getSender().getLocalName());
+							System.out.println("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
+						}
+					}
+						
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+			}
+			
+			for(int i=0; i<responses.size(); i++) {
+				ACLMessage response = ((ACLMessage) responses.get(i));
+				try {
+					if(response.getPerformative() == ACLMessage.REFUSE)
+						continue;
+					
+					else if(response.getPerformative() == ACLMessage.PROPOSE){
 						
 						ACLMessage msg = response.createReply();
-						msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
+						msg.setPerformative(ACLMessage.CFP);
+						msg.setContentObject(highestBid);
 						acceptances.add(msg);
-						
-					} else {
-						
 						
 					}
 					
-				} catch (UnreadableException e) {
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
-				ACLMessage msg = response.createReply();
-				msg.setPerformative(ACLMessage.ACCEPT_PROPOSAL); // OR NOT!
-				acceptances.add(msg);
+			}
+			if(acceptances.size() == 1) {
+				((ACLMessage) acceptances.get(0)).setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+			} else {
+				newIteration(acceptances);
 			}
 		}
 		
@@ -168,5 +200,6 @@ public class SellerAgent extends Agent {
 		}
 		
 	}
+	
 	
 }
