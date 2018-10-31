@@ -46,5 +46,13 @@ public class Bid implements java.io.Serializable{
 		return this.minIncrease;
 	}
 	
+	@Override
+	public boolean equals(Object obj) {
+		Bid bid = (Bid) obj;
+		if(this.value == bid.value && this.itemID == bid.itemID && this.lastBidder == bid.lastBidder)
+			return true;
+		return false;
+	}
+	
 
 }

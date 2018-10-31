@@ -8,6 +8,7 @@ import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.TickerBehaviour;
+import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -25,6 +26,7 @@ public class SellerAgent extends Agent {
 	private AID[] buyerAgentsToCurrentItem;
 	private Bid highestBid = null;
 	private String agentName;
+	
 
 	public void setup() {
 
@@ -56,11 +58,11 @@ public class SellerAgent extends Agent {
 		bid.setLastBidder(bidder);
 	}
 	
-
+ 
 	private class FetchBuyersBehaviour extends TickerBehaviour {
 
 
-		private static final long serialVersionUID = 346234499297083722L;
+		private static final long serialVersionUID = 1L;
 
 		public FetchBuyersBehaviour(Agent a, long period) {
 			super(a, period);
@@ -101,7 +103,7 @@ public class SellerAgent extends Agent {
 	private class FIPAContractNetInit extends ContractNetInitiator {
 
 		
-		private static final long serialVersionUID = -1202893268098205290L;
+		private static final long serialVersionUID = 1L;
 
 		public FIPAContractNetInit(Agent a, ACLMessage msg) {
 			super(a, msg);
@@ -189,7 +191,10 @@ public class SellerAgent extends Agent {
 
 			}
 			if(acceptances.size() == 1) {
-				((ACLMessage) acceptances.get(0)).setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+				ACLMessage winnerMessage = (ACLMessage) acceptances.get(0);
+				winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+				BidKeeper keeper = new BidKeeper(myAgent, 3000);
+				addBehaviour(keeper);
 			} else {
 				newIteration(acceptances);
 			}
@@ -197,6 +202,30 @@ public class SellerAgent extends Agent {
 		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
 			System.out.println("got " + resultNotifications.size() + " result notifs!");
+		}
+		
+		private class BidKeeper extends WakerBehaviour{
+
+			private static final long serialVersionUID = 1L;
+
+			public BidKeeper(Agent a, long timeout) {
+				super(a, timeout);
+			}
+			
+			@Override
+			public void onWake() {
+				
+				if(highestBid != null) {
+					AID teste = getAID(highestBid.getLastBidder());
+					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
+					message.setSender(getAID());
+					message.addReceiver(teste);
+					myAgent.send(message);
+				} else {
+					System.err.println("Error checking ended auction status");
+				}
+				System.out.println("Ola");
+			}	
 		}
 		
 	}

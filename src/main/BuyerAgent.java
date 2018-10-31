@@ -2,10 +2,14 @@ package main;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -13,17 +17,16 @@ import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
-import jade.proto.ContractNetResponder;
-import jade.proto.SSContractNetResponder;
 import jade.proto.SSIteratedContractNetResponder;
 import jade.proto.SSResponderDispatcher;
 
 public class BuyerAgent extends Agent{
 
 
-	private static final long serialVersionUID = 4237051775444259812L;
+	private static final long serialVersionUID = 1L;
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private String agentName;
+	private Map<String,ArrayList<Bid>> purchases = new HashMap<String,ArrayList<Bid>>();
 	
 	protected void setup() {	
 		
@@ -57,6 +60,9 @@ public class BuyerAgent extends Agent{
 	private class CFPDispatcher extends SSResponderDispatcher {
 
 
+		private static final long serialVersionUID = 1L;
+
+
 		public CFPDispatcher(Agent a, MessageTemplate tpl) {
 			super(a, tpl);
 		}
@@ -70,6 +76,11 @@ public class BuyerAgent extends Agent{
 		
 		
 		private class FIPAIteratedContractedNet extends SSIteratedContractNetResponder {
+
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
 
 			public FIPAIteratedContractedNet(Agent a, ACLMessage cfp) {
 				super(a, cfp);
@@ -140,5 +151,28 @@ public class BuyerAgent extends Agent{
 	    return ( (float) ( (int) ((tmp - (int) tmp) >= 0.5f ? tmp + 1 : tmp) ) ) / pow;
 	}
 	
+	public class Confirmation extends CyclicBehaviour {
+
+
+		private static final long serialVersionUID = 1L;
+		
+		MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);    
+		ACLMessage reply;
+
+		@Override
+		public void action() {
+			ACLMessage msg = receive( template );
+			if (msg!=null) {
+			                   
+			        // reply informing whether is is to confirm the auction winning or not
+	                reply = msg.createReply();
+	                ArrayList<Bid> bids;
+	                if((bids = purchases.get(msg.getSender().getLocalName())) != null)
+	                	reply.setPerformative(ACLMessage.INFORM);
+			
+			}
+		
+		}
+	}	
 	
 }
