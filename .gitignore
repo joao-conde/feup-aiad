@@ -5,3 +5,4 @@ src/bin/
 .DS_Store
 /bin/
 .metadata
+*.class
