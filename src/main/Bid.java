@@ -48,10 +48,9 @@ public class Bid implements java.io.Serializable{
 	
 	@Override
 	public boolean equals(Object obj) {
+		//Removed the value = obj.value because i want to compare bids with different values
 		Bid bid = (Bid) obj;
-		if(this.value == bid.value && this.itemID == bid.itemID && this.lastBidder == bid.lastBidder)
-			return true;
-		return false;
+		return (this.itemID == bid.itemID && this.lastBidder == bid.lastBidder);
 	}
 	
 

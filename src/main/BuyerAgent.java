@@ -2,11 +2,11 @@ package main;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
+import communication.MessageType;
+
+
+import java.util.HashMap;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
@@ -26,7 +26,9 @@ public class BuyerAgent extends Agent{
 	private static final long serialVersionUID = 1L;
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private String agentName;
-	private Map<String,ArrayList<Bid>> purchases = new HashMap<String,ArrayList<Bid>>();
+	//private HashMap<Bid, String> purchases = new HashMap<Bid, String>(); //Bid, Seller name
+	private HashMap<String, Bid> purchases = new HashMap<String, Bid>(); // Seller-Item, Bid
+	//TODO
 	
 	protected void setup() {	
 		
@@ -42,7 +44,7 @@ public class BuyerAgent extends Agent{
 			
 			
 			ServiceDescription sd = new ServiceDescription();
-			sd.setType("buying");
+			sd.setType(MessageType.SD_BUY);
 			sd.setName(argument.getKey());
 			dfd.addServices(sd);
 		}
@@ -55,6 +57,7 @@ public class BuyerAgent extends Agent{
 	    }
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
+	    addBehaviour(new Confirmation());
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -130,14 +133,14 @@ public class BuyerAgent extends Agent{
 				System.out.println(myAgent.getLocalName() + " got a reject...");
 			}
 
-			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
+			/*protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				System.out.println(myAgent.getLocalName() + " got an accept!");
 				ACLMessage result = accept.createReply();
 				result.setPerformative(ACLMessage.INFORM);
 				result.setContent("this is the result");
 				
 				return result;
-			}
+			}*/
 			
 		}
 
@@ -153,7 +156,6 @@ public class BuyerAgent extends Agent{
 	
 	public class Confirmation extends CyclicBehaviour {
 
-
 		private static final long serialVersionUID = 1L;
 		
 		MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);    
@@ -162,14 +164,42 @@ public class BuyerAgent extends Agent{
 		@Override
 		public void action() {
 			ACLMessage msg = receive( template );
+
 			if (msg!=null) {
-			                   
-			        // reply informing whether is is to confirm the auction winning or not
-	                reply = msg.createReply();
-	                ArrayList<Bid> bids;
-	                if((bids = purchases.get(msg.getSender().getLocalName())) != null)
-	                	reply.setPerformative(ACLMessage.INFORM);
-			
+			    // reply informing whether is is to confirm the auction winning or not
+                reply = msg.createReply();
+                reply.setPerformative(ACLMessage.INFORM);
+                reply.addReceiver(msg.getSender());
+                try {
+					Bid bid = (Bid) msg.getContentObject();
+					//TODO: add bid to purchases if none there
+					
+					if(purchases.containsKey(bid)) {
+						if(purchases.get(bid) != msg.getSender().getLocalName()) {
+							System.out.println("Different bid then the one i have saved");
+							//how to get the bid if it is the key?
+							//possible to do keySet() and iterate but it is
+							//ineffective. better solution TODO
+							//get a map of <string, bid> where string is
+							//a combined string of sellerName-Item
+							//this will be unique
+							//allows us to get the bid for each seller-item
+						}
+					}
+					
+					if(items.containsKey(bid.getItem())) {						
+						items.remove(bid.getItem());
+						System.out.println("-->Acquired " + bid.getItem() + " for " + bid.getValue() + " from " + msg.getSender().getLocalName());
+						reply.setContent(MessageType.PURCHASE);
+					}
+					else {
+						reply.setContent(MessageType.CANCEL);
+					}
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
+                System.out.println(reply);
+                send(reply);
 			}
 		
 		}

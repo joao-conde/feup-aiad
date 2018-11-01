@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 
+import communication.MessageType;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SequentialBehaviour;
@@ -75,7 +76,7 @@ public class SellerAgent extends Agent {
 			// Update the list of seller agents
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
-			sd.setType("buying");
+			sd.setType(MessageType.SD_BUY);
 			sd.setName(getCurrentBid().getItem());
 			template.addServices(sd);
 
@@ -111,7 +112,6 @@ public class SellerAgent extends Agent {
 
 		protected Vector<ACLMessage> prepareCfps(ACLMessage cfp) {
 			
-
 			Vector<ACLMessage> v = new Vector<ACLMessage>();
 			
 			for(AID aid: buyerAgentsToCurrentItem) {
@@ -129,28 +129,29 @@ public class SellerAgent extends Agent {
 			v.add(cfp);
 			
 			//e.g. Seller2: started an auction of bananas
-			System.out.println(agentName+": started an auction of "+bids.get(currentBidIndex).getItem());
+			System.out.println("--------------AUCTION--------------");
+			System.out.println(agentName + " started an auction of " + bids.get(currentBidIndex).getItem());
 			
 			return v;
 		}
 
 		protected void handleAllResponses(Vector responses, Vector acceptances) {
 			
-			System.out.println("got " + responses.size() + " responses!");
-			
+			System.out.println(agentName + " got " + responses.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
+			System.out.println("--------------New iteration--------------");
 			for(int i=0; i<responses.size(); i++) {
 				ACLMessage response = ((ACLMessage) responses.get(i));
 				Bid receivedBid;
 				try {
 					if(response.getPerformative() == ACLMessage.REFUSE) {
-						System.out.println(agentName+": Received "+ACLMessage.REFUSE+" from "+response.getSender().getLocalName());
+						System.out.println(agentName+": Received REFUSE from "+response.getSender().getLocalName());
 						continue;
 					
 					} else if(response.getPerformative() == ACLMessage.PROPOSE){
 						receivedBid = (Bid) response.getContentObject();
+						
 						System.out.println(agentName+": "+response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
 						if(highestBid != null) {
-							
 							if(receivedBid.getValue() > highestBid.getValue()) {
 								highestBid = receivedBid;
 								highestBid.setLastBidder(response.getSender().getLocalName());
@@ -193,15 +194,22 @@ public class SellerAgent extends Agent {
 			if(acceptances.size() == 1) {
 				ACLMessage winnerMessage = (ACLMessage) acceptances.get(0);
 				winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-				BidKeeper keeper = new BidKeeper(myAgent, 3000);
+				BidKeeper keeper = new BidKeeper(myAgent, 1000);
 				addBehaviour(keeper);
+				System.out.println("---> " + highestBid.getItem() + " sold to " + highestBid.getLastBidder() + "for " + highestBid.getValue());
 			} else {
 				newIteration(acceptances);
 			}
 		}
 		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
-			System.out.println("got " + resultNotifications.size() + " result notifs!");
+			System.out.println(agentName + " got " + resultNotifications.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
+		}
+		
+		protected void handleInform(ACLMessage inform) {
+			String decision = inform.getContent();
+			//TODO re-open auction for a CANCEL
+			//and auction next item for a PURCHASE
 		}
 		
 		private class BidKeeper extends WakerBehaviour{
@@ -220,11 +228,18 @@ public class SellerAgent extends Agent {
 					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
 					message.setSender(getAID());
 					message.addReceiver(teste);
+					
+					try {
+						message.setContentObject(highestBid);
+					} catch (IOException e) {
+						e.printStackTrace();
+					}
+					
 					myAgent.send(message);
+					System.out.println("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
 				} else {
 					System.err.println("Error checking ended auction status");
 				}
-				System.out.println("Ola");
 			}	
 		}
 		
