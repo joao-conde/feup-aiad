@@ -26,9 +26,7 @@ public class BuyerAgent extends Agent{
 	private static final long serialVersionUID = 1L;
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private String agentName;
-	//private HashMap<Bid, String> purchases = new HashMap<Bid, String>(); //Bid, Seller name
-	private HashMap<String, Bid> purchases = new HashMap<String, Bid>(); // Seller-Item, Bid
-	//TODO
+	private HashMap<Bid, String> purchases = new HashMap<Bid, String>(); //Bid, Seller name
 	
 	protected void setup() {	
 		
@@ -41,7 +39,6 @@ public class BuyerAgent extends Agent{
 		for(Object arg: args) {
 			SimpleEntry<String,Float> argument = (SimpleEntry<String,Float>) arg;
 			items.put(argument.getKey(), argument.getValue());
-			
 			
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType(MessageType.SD_BUY);
@@ -133,14 +130,25 @@ public class BuyerAgent extends Agent{
 				System.out.println(myAgent.getLocalName() + " got a reject...");
 			}
 
-			/*protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
-				System.out.println(myAgent.getLocalName() + " got an accept!");
-				ACLMessage result = accept.createReply();
-				result.setPerformative(ACLMessage.INFORM);
-				result.setContent("this is the result");
+			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				
-				return result;
-			}*/
+				Bid bid = (Bid)accept.getContentObject();
+				if(purchases.containsKey(bid)) {
+					for(Bid b: purchases.keySet()) {
+						if(b.equals(bid)) {
+							//if(b.g)
+							
+							break;
+						}
+					}
+					
+					//purchases.remove(bid);
+					//purchases.put(bid, accept.getSender().getLocalName());
+				}
+				
+				
+				return null;
+			}
 			
 		}
 
@@ -175,7 +183,7 @@ public class BuyerAgent extends Agent{
 					//TODO: add bid to purchases if none there
 					
 					if(purchases.containsKey(bid)) {
-						if(purchases.get(bid) != msg.getSender().getLocalName()) {
+						//if(purchases.get(bid) != msg.getSender().getLocalName()) {
 							System.out.println("Different bid then the one i have saved");
 							//how to get the bid if it is the key?
 							//possible to do keySet() and iterate but it is
