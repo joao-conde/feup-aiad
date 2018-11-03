@@ -1,6 +1,6 @@
 package main;
 
-public class Bid extends Auction{
+public class Bid implements java.io.Serializable{
 	
 	/**
 	 * 
@@ -8,9 +8,14 @@ public class Bid extends Auction{
 	private static final long serialVersionUID = 1L;
 	private float minIncrease; //minimum value that a buyer has to increase to the last value
 	private String lastBidder; //propose agent name
+	private String itemID; //item name
+	private float value; //euros
+	private int deliveryTime; //days
 	
 	public Bid(String item, float value, int deliveryTime, float minIncrease) {
-		super(item, value, deliveryTime);
+		this.itemID = item;
+		this.value = value;
+		this.deliveryTime = deliveryTime;
 		this.minIncrease = minIncrease;
 		this.lastBidder = null;
 	}
@@ -28,6 +33,22 @@ public class Bid extends Auction{
 	
 	public float getMinIncrease() {
 		return this.minIncrease;
+	}
+	
+	public void setNewValue(float newValue) {
+		this.value = newValue;
+	}
+	
+	public float getValue() {
+		return this.value;
+	}
+	
+	public String getItem() {
+		return this.itemID;
+	}
+	
+	public int getDeliveryTime() {
+		return this.deliveryTime;
 	}
 	
 }

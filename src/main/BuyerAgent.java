@@ -2,9 +2,10 @@ package main;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.ArrayList;
 
-import communication.MessageType;
-
+import communication.Utils;
+import main.Purchase;
 
 import java.util.HashMap;
 import jade.core.Agent;
@@ -24,9 +25,21 @@ public class BuyerAgent extends Agent{
 
 
 	private static final long serialVersionUID = 1L;
-	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private String agentName;
-	private HashMap<Bid, String> purchases = new HashMap<Bid, String>(); //Bid, Seller name
+	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
+	private HashMap<String,Float> ratings = new HashMap<String,Float>(); //sellerID, averageRating
+	private ArrayList<Purchase> purchases = new ArrayList<Purchase>(); 
+	
+	private float computeAverageRating(String sellerID) {
+		float sumRatings = 0, sellerPurchases = 0;
+		for(Purchase p: purchases) {
+			if(p.getSellerID().equals(sellerID)) {
+				sellerPurchases++;
+				sumRatings += p.getRating();
+			}
+		}
+		return (float) (sellerPurchases == 0 ? 0.5 : sumRatings/sellerPurchases);
+	}
 	
 	protected void setup() {	
 		
@@ -41,7 +54,7 @@ public class BuyerAgent extends Agent{
 			items.put(argument.getKey(), argument.getValue());
 			
 			ServiceDescription sd = new ServiceDescription();
-			sd.setType(MessageType.SD_BUY);
+			sd.setType(Utils.SD_BUY);
 			sd.setName(argument.getKey());
 			dfd.addServices(sd);
 		}
@@ -71,7 +84,6 @@ public class BuyerAgent extends Agent{
 		@Override
 		protected Behaviour createResponder(ACLMessage cfp) {
 			return new FIPAIteratedContractedNet(myAgent,cfp);
-			
 		}
 		
 		
@@ -88,12 +100,21 @@ public class BuyerAgent extends Agent{
 			
 			protected ACLMessage handleCfp(ACLMessage cfp) {
 				
-				
 				ACLMessage reply = cfp.createReply();
-				
+							
 				try {
 					Bid receivedBid = (Bid) cfp.getContentObject();
 					
+					if(!items.containsKey(receivedBid.getItem())) {
+						reply.setPerformative(ACLMessage.REFUSE);
+						return reply;
+					}
+					
+					if(cfp.getProtocol() == Utils.CFP_PROTOCOL) {
+						String sellerID = cfp.getSender().getLocalName();
+						ratings.put(sellerID, computeAverageRating(sellerID));
+					}
+						
 					System.out.println(agentName+": Received a CFP from "+cfp.getSender().getLocalName()+" to "+receivedBid.getItem());
 					
 					String lastBidderName=null;
@@ -105,7 +126,7 @@ public class BuyerAgent extends Agent{
 						System.out.println(agentName+": LastHighest was "+lastBidderName);
 						if(!lastBidderName.equals(agentName)) {
 							
-							if(receivedBid.getValue() + receivedBid.getMinIncrease() <= items.get(receivedBid.getItem()))
+							if(receivedBid.getValue() + receivedBid.getMinIncrease() <= items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName()))
 								receivedBid.setNewValue(round(receivedBid.getValue()+receivedBid.getMinIncrease(), 3));
 							else
 								reply.setPerformative(ACLMessage.REFUSE);
@@ -113,7 +134,7 @@ public class BuyerAgent extends Agent{
 						
 					} else {
 						//first bid (cfp call)
-						if(receivedBid.getValue() > items.get(receivedBid.getItem()))
+						if(receivedBid.getValue() > items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName()))
 							reply.setPerformative(ACLMessage.REFUSE); //first value is already too high
 					}
 					reply.setContentObject(receivedBid);
@@ -131,22 +152,25 @@ public class BuyerAgent extends Agent{
 			}
 
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
-				
-				Bid bid = (Bid)accept.getContentObject();
-				if(purchases.containsKey(bid)) {
-					for(Bid b: purchases.keySet()) {
-						if(b.equals(bid)) {
-							//if(b.g)
-							
-							break;
+				try {
+					Bid bid = (Bid)accept.getContentObject();
+					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(), 5, items.get(bid.getItem()));
+					
+					for(Purchase p: purchases) {
+						if(p.getItemID().equals(purchase.getItemID())) {
+							if(p.getRating() < purchase.getRating()) {
+								purchases.remove(p);
+								purchases.add(purchase);
+								return null;
+							}
 						}
 					}
+					purchases.add(purchase);
 					
-					//purchases.remove(bid);
-					//purchases.put(bid, accept.getSender().getLocalName());
+				} catch (UnreadableException e) {
+					e.printStackTrace();
 				}
-				
-				
+	
 				return null;
 			}
 			
@@ -172,42 +196,36 @@ public class BuyerAgent extends Agent{
 		@Override
 		public void action() {
 			ACLMessage msg = receive( template );
-
+			
 			if (msg!=null) {
-			    // reply informing whether is is to confirm the auction winning or not
-                reply = msg.createReply();
-                reply.setPerformative(ACLMessage.INFORM);
-                reply.addReceiver(msg.getSender());
-                try {
-					Bid bid = (Bid) msg.getContentObject();
-					//TODO: add bid to purchases if none there
-					
-					if(purchases.containsKey(bid)) {
-						//if(purchases.get(bid) != msg.getSender().getLocalName()) {
-							System.out.println("Different bid then the one i have saved");
-							//how to get the bid if it is the key?
-							//possible to do keySet() and iterate but it is
-							//ineffective. better solution TODO
-							//get a map of <string, bid> where string is
-							//a combined string of sellerName-Item
-							//this will be unique
-							//allows us to get the bid for each seller-item
-						}
-					}
-					
-					if(items.containsKey(bid.getItem())) {						
-						items.remove(bid.getItem());
-						System.out.println("-->Acquired " + bid.getItem() + " for " + bid.getValue() + " from " + msg.getSender().getLocalName());
-						reply.setContent(MessageType.PURCHASE);
+				reply = msg.createReply();
+				reply.setPerformative(ACLMessage.INFORM);
+				reply.addReceiver(msg.getSender());
+				
+				try {
+					Bid receivedBid = (Bid) msg.getContentObject();
+					if(!items.containsKey(receivedBid.getItem())) {
+						reply.setContent(Utils.CANCEL);
 					}
 					else {
-						reply.setContent(MessageType.CANCEL);
+						
+						for(Purchase p: purchases) {
+							if(p.getItemID().equals(receivedBid.getItem()) &&
+									p.getSellerID().equals(msg.getSender().getLocalName())) {
+								reply.setContent(Utils.PURCHASE);
+								items.remove(p.getItemID());
+								send(reply);
+								return;
+							}
+						}
+						reply.setContent(Utils.CANCEL);	
+		                send(reply);
+
 					}
 				} catch (UnreadableException e) {
 					e.printStackTrace();
 				}
-                System.out.println(reply);
-                send(reply);
+			  
 			}
 		
 		}

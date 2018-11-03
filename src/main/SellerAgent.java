@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 
-import communication.MessageType;
+import communication.Utils;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SequentialBehaviour;
@@ -15,6 +15,7 @@ import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 
@@ -27,6 +28,7 @@ public class SellerAgent extends Agent {
 	private AID[] buyerAgentsToCurrentItem;
 	private Bid highestBid = null;
 	private String agentName;
+	private boolean firstCFP = true;
 	
 
 	public void setup() {
@@ -76,7 +78,7 @@ public class SellerAgent extends Agent {
 			// Update the list of seller agents
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
-			sd.setType(MessageType.SD_BUY);
+			sd.setType(Utils.SD_BUY);
 			sd.setName(getCurrentBid().getItem());
 			template.addServices(sd);
 
@@ -121,8 +123,8 @@ public class SellerAgent extends Agent {
 			try {
 				Bid bid = bids.get(currentBidIndex);
 				cfp.setContentObject(bid);
+				cfp.setProtocol(Utils.CFP_PROTOCOL);
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			
@@ -181,6 +183,7 @@ public class SellerAgent extends Agent {
 						ACLMessage msg = response.createReply();
 						msg.setPerformative(ACLMessage.CFP);
 						msg.setContentObject(highestBid);
+						msg.setProtocol(null);
 						acceptances.add(msg);
 						
 					}
@@ -189,28 +192,26 @@ public class SellerAgent extends Agent {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-
 			}
+			
 			if(acceptances.size() == 1) {
 				ACLMessage winnerMessage = (ACLMessage) acceptances.get(0);
 				winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 				BidKeeper keeper = new BidKeeper(myAgent, 1000);
 				addBehaviour(keeper);
 				System.out.println("---> " + highestBid.getItem() + " sold to " + highestBid.getLastBidder() + "for " + highestBid.getValue());
-			} else {
+			} 
+			else if(acceptances.size() != 0) {
 				newIteration(acceptances);
 			}
+			else System.out.println("No one bought :(");
 		}
 		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
 			System.out.println(agentName + " got " + resultNotifications.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
 		}
 		
-		protected void handleInform(ACLMessage inform) {
-			String decision = inform.getContent();
-			//TODO re-open auction for a CANCEL
-			//and auction next item for a PURCHASE
-		}
+		
 		
 		private class BidKeeper extends WakerBehaviour{
 
@@ -234,13 +235,30 @@ public class SellerAgent extends Agent {
 					} catch (IOException e) {
 						e.printStackTrace();
 					}
-					
-					myAgent.send(message);
+					myAgent.send(message);					
 					System.out.println("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
+					handleInform();
 				} else {
 					System.err.println("Error checking ended auction status");
 				}
+				
+				
+				
 			}	
+			
+			protected void handleInform() {
+				MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
+				ACLMessage msg = null;
+				while(msg == null) msg = receive(template);
+				
+				if(msg.getContent().equals(Utils.PURCHASE)) {
+					System.out.println(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
+					
+				}
+				else {
+					System.out.println(msg.getSender().getLocalName() + " is a huuuuge fag");
+				}
+			}
 		}
 		
 	}

@@ -1,17 +1,57 @@
 package main;
 
-public class Purchase extends Auction{
+import main.Bid;
+
+public class Purchase implements java.io.Serializable{
 
 	/**
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private int realDeliveryTime;
+	private String itemID; //item name
+	private String sellerID;
+	private float rating;
 	
+	public Purchase(Bid bid, String sellerID, int realDeliveryTime, float maxValue) {
+		this.itemID = bid.getItem();
+		this.sellerID = sellerID;		
+		computeRating(realDeliveryTime, bid.getDeliveryTime(), bid.getValue(), maxValue);
+	}
 	
-	public Purchase(String item, float value, int deliveryTime, int realDeliveryTime) {
-		super(item, value, deliveryTime);
-		this.realDeliveryTime = realDeliveryTime;
+	private void computeRating(int realDeliveryTime, int expectedDeliveryTime, float value, float maxValue) {
+		float timeRating = (float)(expectedDeliveryTime/realDeliveryTime),
+			  valueRating = maxValue/value;
+		
+		this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
+	}
+	
+	public String getItemID() {
+		return itemID;
+	}
+
+
+	public void setItemID(String itemID) {
+		this.itemID = itemID;
+	}
+
+
+	public String getSellerID() {
+		return sellerID;
+	}
+
+
+	public void setSellerID(String sellerID) {
+		this.sellerID = sellerID;
+	}
+
+
+	public float getRating() {
+		return rating;
+	}
+
+
+	public void setRating(float rating) {
+		this.rating = rating;
 	}
 
 }
