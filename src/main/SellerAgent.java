@@ -8,6 +8,7 @@ import communication.Utils;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SequentialBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.core.behaviours.WakerBehaviour;
 import jade.domain.DFService;
@@ -27,9 +28,7 @@ public class SellerAgent extends Agent {
 	private Integer currentBidIndex = 0;
 	private AID[] buyerAgentsToCurrentItem;
 	private Bid highestBid = null;
-	private String agentName;
-	private boolean firstCFP = true;
-	
+	private String agentName;	
 
 	public void setup() {
 
@@ -40,16 +39,10 @@ public class SellerAgent extends Agent {
 		}
 		
 		agentName = this.getLocalName();
-		
-		SequentialBehaviour fetchAndPropose = new SequentialBehaviour();
-		FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(this, 3000);
-		FIPAContractNetInit b2 = new FIPAContractNetInit(this,  new ACLMessage(ACLMessage.CFP));
-		fetchAndPropose.addSubBehaviour(b1);
-		fetchAndPropose.addSubBehaviour(b2);
-		
-		addBehaviour(fetchAndPropose);
-
+		addBehaviour(new MainBehaviour(this));
 	}
+	
+	
 	
 	public Bid getCurrentBid() {
 		return bids.get(currentBidIndex);
@@ -61,20 +54,54 @@ public class SellerAgent extends Agent {
 		bid.setLastBidder(bidder);
 	}
 	
+	private class MainBehaviour extends SimpleBehaviour{
+
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
+		private boolean finished = false;
+		
+		public MainBehaviour(Agent a) {
+			super(a);
+		}
+		
+		@Override
+		public void action() {
+			if(bids.isEmpty()) {
+				System.out.println("No more items to sell!");
+				finished = true;
+				return;
+			}
+			SequentialBehaviour fetchAndPropose = new SequentialBehaviour();
+			FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(myAgent, 3000);
+			FIPAContractNetInit b2 = new FIPAContractNetInit(myAgent, new ACLMessage(ACLMessage.CFP));
+			fetchAndPropose.addSubBehaviour(b1);
+			fetchAndPropose.addSubBehaviour(b2);
+			myAgent.addBehaviour(fetchAndPropose);
+			finished = true;
+		}
+
+		@Override
+		public boolean done() {
+			return finished;
+		}
+		
+	}
  
 	private class FetchBuyersBehaviour extends TickerBehaviour {
 
 
 		private static final long serialVersionUID = 1L;
+		//private boolean finished 
 
 		public FetchBuyersBehaviour(Agent a, long period) {
 			super(a, period);
 		}
-
+		
 		@Override
 		protected void onTick() {
 			
-
 			// Update the list of seller agents
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
@@ -111,7 +138,7 @@ public class SellerAgent extends Agent {
 		public FIPAContractNetInit(Agent a, ACLMessage msg) {
 			super(a, msg);
 		}
-
+		
 		protected Vector<ACLMessage> prepareCfps(ACLMessage cfp) {
 			
 			Vector<ACLMessage> v = new Vector<ACLMessage>();
@@ -199,12 +226,16 @@ public class SellerAgent extends Agent {
 				winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 				BidKeeper keeper = new BidKeeper(myAgent, 1000);
 				addBehaviour(keeper);
-				System.out.println("---> " + highestBid.getItem() + " sold to " + highestBid.getLastBidder() + "for " + highestBid.getValue());
+				//System.out.println("---> " + highestBid.getItem() + " sold to " + highestBid.getLastBidder() + "for " + highestBid.getValue());
 			} 
 			else if(acceptances.size() != 0) {
 				newIteration(acceptances);
 			}
-			else System.out.println("No one bought :(");
+			else {
+				System.out.println("No one bought, moving to next item");
+				currentBidIndex++;
+				currentBidIndex %= bids.size();
+			}
 		}
 		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
@@ -241,9 +272,7 @@ public class SellerAgent extends Agent {
 				} else {
 					System.err.println("Error checking ended auction status");
 				}
-				
-				
-				
+				this.stop();	
 			}	
 			
 			protected void handleInform() {
@@ -253,10 +282,13 @@ public class SellerAgent extends Agent {
 				
 				if(msg.getContent().equals(Utils.PURCHASE)) {
 					System.out.println(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
-					
+					bids.remove(currentBidIndex);
+					addBehaviour(new MainBehaviour(myAgent));
 				}
 				else {
 					System.out.println(msg.getSender().getLocalName() + " is a huuuuge fag");
+					currentBidIndex++;
+					addBehaviour(new MainBehaviour(myAgent));
 				}
 			}
 		}

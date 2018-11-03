@@ -27,6 +27,7 @@ public class BuyerAgent extends Agent{
 	private static final long serialVersionUID = 1L;
 	private String agentName;
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
+	private HashMap<String,Integer> attempts = new HashMap<String,Integer>(); //itemID, attempts
 	private HashMap<String,Float> ratings = new HashMap<String,Float>(); //sellerID, averageRating
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>(); 
 	
@@ -123,11 +124,12 @@ public class BuyerAgent extends Agent{
 					if((lastBidderName = receivedBid.getLastBidder()) != null) {
 						
 						//This agent is not the currrent winner
-						System.out.println(agentName+": LastHighest was "+lastBidderName);
+						System.out.println(agentName+": LastHighest was "+lastBidderName + " at " + receivedBid.getValue());
 						if(!lastBidderName.equals(agentName)) {
 							
+							System.out.println(receivedBid.getItem() + " ITEM RATE OF SELLER " + ratings.get(cfp.getSender().getLocalName()));
 							if(receivedBid.getValue() + receivedBid.getMinIncrease() <= items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName()))
-								receivedBid.setNewValue(round(receivedBid.getValue()+receivedBid.getMinIncrease(), 3));
+								receivedBid.setNewValue(Utils.round(receivedBid.getValue()+receivedBid.getMinIncrease(), 3));
 							else
 								reply.setPerformative(ACLMessage.REFUSE);
 						}
@@ -147,9 +149,9 @@ public class BuyerAgent extends Agent{
 				return reply;
 			}
 			
-			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
+/*			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
 				System.out.println(myAgent.getLocalName() + " got a reject...");
-			}
+			}*/
 
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				try {
@@ -178,13 +180,7 @@ public class BuyerAgent extends Agent{
 
 	}
 	
-	public static float round(float number, int scale) {
-	    int pow = 10;
-	    for (int i = 1; i < scale; i++)
-	        pow *= 10;
-	    float tmp = number * pow;
-	    return ( (float) ( (int) ((tmp - (int) tmp) >= 0.5f ? tmp + 1 : tmp) ) ) / pow;
-	}
+	
 	
 	public class Confirmation extends CyclicBehaviour {
 
