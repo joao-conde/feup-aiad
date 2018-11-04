@@ -3,7 +3,7 @@ package main;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.logging.FileHandler;
-import java.util.logging.SimpleFormatter;
+import java.util.logging.LogRecord;
 import java.util.ArrayList;
 
 import main.Purchase;
@@ -82,7 +82,7 @@ public class BuyerAgent extends Agent{
 		logger.setLevel(Logger.FINEST);
 		try {
 			FileHandler fh = new FileHandler(Utils.LOG_PATH + agentName + ".log");
-			fh.setFormatter(new SimpleFormatter());
+			fh.setFormatter(Utils.messageFormatter());
 			logger.addHandler(fh);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();

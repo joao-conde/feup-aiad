@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
 import java.util.logging.FileHandler;
-import java.util.logging.SimpleFormatter;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -55,7 +54,7 @@ public class SellerAgent extends Agent {
 		logger.setLevel(Logger.FINEST);
 		try {
 			FileHandler fh = new FileHandler(Utils.LOG_PATH + agentName + ".log");
-			fh.setFormatter(new SimpleFormatter());
+			fh.setFormatter(Utils.messageFormatter());
 			logger.addHandler(fh);
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
@@ -74,9 +73,7 @@ public class SellerAgent extends Agent {
 	
 	private class MainBehaviour extends SimpleBehaviour{
 
-		/**
-		 * 
-		 */
+
 		private static final long serialVersionUID = 1L;
 		private boolean finished = false;
 		
