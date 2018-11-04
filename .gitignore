@@ -1,8 +1,12 @@
 src/bin/
+/bin/
+/logs
+
 .classpath
 .project
 *.txt
 .DS_Store
-/bin/
+
+
 .metadata
 *.class

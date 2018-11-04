@@ -1,4 +1,4 @@
-package communication;
+package utilities;
 
 public class Utils {
 	
@@ -6,9 +6,11 @@ public class Utils {
 		PURCHASE = "PURCHASE",
 		CANCEL = "CANCEL",
 		SD_BUY = "SD_BUY",
-		SD_SELL = "SD_SELL",
+		SD_SELL = "SD_SELL",	
+		CFP_PROTOCOL = "FCFP",
 		
-		CFP_PROTOCOL = "FCFP";
+		LOG_PATH = "logs/";
+	
 		
 	public static float round(float number, int scale) {
 	    int pow = 10;

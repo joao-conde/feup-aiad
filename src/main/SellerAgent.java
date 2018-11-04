@@ -3,8 +3,9 @@ package main;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Vector;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 
-import communication.Utils;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.SequentialBehaviour;
@@ -19,11 +20,15 @@ import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
+import jade.util.Logger;
+import jade.wrapper.ControllerException;
+import utilities.Utils;
 
 public class SellerAgent extends Agent {
 
 
 	private static final long serialVersionUID = 7888357163660384182L;
+	private Logger logger;
 	private ArrayList<Bid> bids = new ArrayList<Bid>();
 	private Integer currentBidIndex = 0;
 	private AID[] buyerAgentsToCurrentItem;
@@ -39,10 +44,23 @@ public class SellerAgent extends Agent {
 		}
 		
 		agentName = this.getLocalName();
+		
+		initializeLogger();
+		
 		addBehaviour(new MainBehaviour(this));
 	}
 	
-	
+	public void initializeLogger() {
+		logger = Logger.getJADELogger(this.getClass().getName() + "." + agentName);
+		logger.setLevel(Logger.FINEST);
+		try {
+			FileHandler fh = new FileHandler(Utils.LOG_PATH + agentName + ".log");
+			fh.setFormatter(new SimpleFormatter());
+			logger.addHandler(fh);
+		} catch (SecurityException | IOException e) {
+			e.printStackTrace();
+		}
+	}
 	
 	public Bid getCurrentBid() {
 		return bids.get(currentBidIndex);
@@ -69,7 +87,7 @@ public class SellerAgent extends Agent {
 		@Override
 		public void action() {
 			if(bids.isEmpty()) {
-				System.out.println("No more items to sell!");
+				logger.fine("No more items to sell!");
 				finished = true;
 				return;
 			}
@@ -158,39 +176,39 @@ public class SellerAgent extends Agent {
 			v.add(cfp);
 			
 			//e.g. Seller2: started an auction of bananas
-			System.out.println("--------------AUCTION--------------");
-			System.out.println(agentName + " started an auction of " + bids.get(currentBidIndex).getItem());
+			logger.fine("--------------AUCTION--------------");
+			logger.fine(agentName + " started an auction of " + bids.get(currentBidIndex).getItem());
 			
 			return v;
 		}
 
 		protected void handleAllResponses(Vector responses, Vector acceptances) {
 			
-			System.out.println(agentName + " got " + responses.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
-			System.out.println("--------------New iteration--------------");
+			logger.fine(agentName + " got " + responses.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
+			logger.fine("--------------New iteration--------------");
 			for(int i=0; i<responses.size(); i++) {
 				ACLMessage response = ((ACLMessage) responses.get(i));
 				Bid receivedBid;
 				try {
 					if(response.getPerformative() == ACLMessage.REFUSE) {
-						System.out.println(agentName+": Received REFUSE from "+response.getSender().getLocalName());
+						logger.fine(agentName+": Received REFUSE from "+response.getSender().getLocalName());
 						continue;
 					
 					} else if(response.getPerformative() == ACLMessage.PROPOSE){
 						receivedBid = (Bid) response.getContentObject();
 						
-						System.out.println(agentName+": "+response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
+						logger.fine(agentName+": "+response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
 						if(highestBid != null) {
 							if(receivedBid.getValue() > highestBid.getValue()) {
 								highestBid = receivedBid;
 								highestBid.setLastBidder(response.getSender().getLocalName());
-								System.out.println("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
+								logger.fine("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
 							}
 							
 						} else {
 							highestBid = receivedBid;
 							highestBid.setLastBidder(response.getSender().getLocalName());
-							System.out.println("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
+							logger.fine("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
 						}
 					}
 						
@@ -206,17 +224,14 @@ public class SellerAgent extends Agent {
 						continue;
 					
 					else if(response.getPerformative() == ACLMessage.PROPOSE){
-						
 						ACLMessage msg = response.createReply();
 						msg.setPerformative(ACLMessage.CFP);
 						msg.setContentObject(highestBid);
 						msg.setProtocol(null);
 						acceptances.add(msg);
-						
 					}
 					
 				} catch (IOException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
@@ -226,20 +241,19 @@ public class SellerAgent extends Agent {
 				winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 				BidKeeper keeper = new BidKeeper(myAgent, 1000);
 				addBehaviour(keeper);
-				//System.out.println("---> " + highestBid.getItem() + " sold to " + highestBid.getLastBidder() + "for " + highestBid.getValue());
 			} 
 			else if(acceptances.size() != 0) {
 				newIteration(acceptances);
 			}
 			else {
-				System.out.println("No one bought, moving to next item");
+				logger.fine("No one bought, moving to next item");
 				currentBidIndex++;
 				currentBidIndex %= bids.size();
 			}
 		}
 		
 		protected void handleAllResultNotifications(Vector resultNotifications) {
-			System.out.println(agentName + " got " + resultNotifications.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
+			logger.fine(agentName + " got " + resultNotifications.size() + " responses to " + bids.get(currentBidIndex).getItem() + " auction\n");
 		}
 		
 		
@@ -267,7 +281,7 @@ public class SellerAgent extends Agent {
 						e.printStackTrace();
 					}
 					myAgent.send(message);					
-					System.out.println("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
+					logger.fine("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
 					handleInform();
 				} else {
 					System.err.println("Error checking ended auction status");
@@ -281,15 +295,20 @@ public class SellerAgent extends Agent {
 				while(msg == null) msg = receive(template);
 				
 				if(msg.getContent().equals(Utils.PURCHASE)) {
-					System.out.println(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
-					bids.remove(currentBidIndex);
-					addBehaviour(new MainBehaviour(myAgent));
+					logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
+					bids.remove(bids.get(currentBidIndex))	;
 				}
 				else {
-					System.out.println(msg.getSender().getLocalName() + " is a huuuuge fag");
+					logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
 					currentBidIndex++;
-					addBehaviour(new MainBehaviour(myAgent));
+					currentBidIndex %= bids.size();
 				}
+			}
+			
+			public int onEnd() {
+				if(!bids.isEmpty())
+					addBehaviour(new MainBehaviour(myAgent));
+				return 0;
 			}
 		}
 		

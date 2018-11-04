@@ -2,10 +2,12 @@ package main;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.logging.FileHandler;
+import java.util.logging.SimpleFormatter;
 import java.util.ArrayList;
 
-import communication.Utils;
 import main.Purchase;
+import utilities.Utils;
 
 import java.util.HashMap;
 import jade.core.Agent;
@@ -20,11 +22,13 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.SSIteratedContractNetResponder;
 import jade.proto.SSResponderDispatcher;
+import jade.util.Logger;
 
 public class BuyerAgent extends Agent{
 
 
 	private static final long serialVersionUID = 1L;
+	private Logger logger;
 	private String agentName;
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private HashMap<String,Integer> attempts = new HashMap<String,Integer>(); //itemID, attempts
@@ -50,6 +54,8 @@ public class BuyerAgent extends Agent{
 		
 		agentName = this.getLocalName();
 		
+		initializeLogger();
+		
 		for(Object arg: args) {
 			SimpleEntry<String,Float> argument = (SimpleEntry<String,Float>) arg;
 			items.put(argument.getKey(), argument.getValue());
@@ -69,6 +75,18 @@ public class BuyerAgent extends Agent{
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	    addBehaviour(new Confirmation());
+	}
+	
+	public void initializeLogger() {
+		logger = Logger.getJADELogger(this.getClass().getName() + "." + agentName);
+		logger.setLevel(Logger.FINEST);
+		try {
+			FileHandler fh = new FileHandler(Utils.LOG_PATH + agentName + ".log");
+			fh.setFormatter(new SimpleFormatter());
+			logger.addHandler(fh);
+		} catch (SecurityException | IOException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -115,8 +133,8 @@ public class BuyerAgent extends Agent{
 						String sellerID = cfp.getSender().getLocalName();
 						ratings.put(sellerID, computeAverageRating(sellerID));
 					}
-						
-					System.out.println(agentName+": Received a CFP from "+cfp.getSender().getLocalName()+" to "+receivedBid.getItem());
+					
+					logger.fine(agentName+": Received a CFP from "+cfp.getSender().getLocalName()+" to "+receivedBid.getItem());
 					
 					String lastBidderName=null;
 					reply.setPerformative(ACLMessage.PROPOSE);
@@ -124,10 +142,10 @@ public class BuyerAgent extends Agent{
 					if((lastBidderName = receivedBid.getLastBidder()) != null) {
 						
 						//This agent is not the currrent winner
-						System.out.println(agentName+": LastHighest was "+lastBidderName + " at " + receivedBid.getValue());
+						logger.fine(agentName+": LastHighest was "+lastBidderName + " at " + receivedBid.getValue());
 						if(!lastBidderName.equals(agentName)) {
 							
-							System.out.println(receivedBid.getItem() + " ITEM RATE OF SELLER " + ratings.get(cfp.getSender().getLocalName()));
+							logger.fine(receivedBid.getItem() + " ITEM RATE OF SELLER " + ratings.get(cfp.getSender().getLocalName()));
 							if(receivedBid.getValue() + receivedBid.getMinIncrease() <= items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName()))
 								receivedBid.setNewValue(Utils.round(receivedBid.getValue()+receivedBid.getMinIncrease(), 3));
 							else
@@ -140,7 +158,7 @@ public class BuyerAgent extends Agent{
 							reply.setPerformative(ACLMessage.REFUSE); //first value is already too high
 					}
 					reply.setContentObject(receivedBid);
-					System.out.println(agentName+": Propose to "+receivedBid.getItem()+" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
+					logger.fine(agentName+": Propose to "+receivedBid.getItem()+" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
 					
 				} catch (UnreadableException | IOException e) {
 					e.printStackTrace();
@@ -150,7 +168,7 @@ public class BuyerAgent extends Agent{
 			}
 			
 /*			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-				System.out.println(myAgent.getLocalName() + " got a reject...");
+				logger.fine(myAgent.getLocalName() + " got a reject...");
 			}*/
 
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
@@ -223,7 +241,7 @@ public class BuyerAgent extends Agent{
 				}
 			  
 			}
-		
+			block(); //this block reduces CPU usage from 80% to 8% XD
 		}
 	}	
 	
