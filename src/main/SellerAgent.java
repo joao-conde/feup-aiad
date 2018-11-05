@@ -234,7 +234,8 @@ public class SellerAgent extends Agent {
 				try {
 					bid = (Bid) winnerMessage.getContentObject();
 					winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-					winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime() + extraDelay)).toString()); //TODO
+					winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime() + extraDelay)).toString());
+				
 					BidKeeper keeper = new BidKeeper(myAgent, 1000);
 					addBehaviour(keeper);
 				} 

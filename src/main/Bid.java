@@ -9,12 +9,13 @@ public class Bid implements java.io.Serializable{
 	private float minIncrease; //minimum value that a buyer has to increase to the last value
 	private String lastBidder; //propose agent name
 	private String itemID; //item name
-	private float value; //euros
+	private float value, initialValue; //euros
 	private int deliveryTime; //days
 	
 	public Bid(String item, float value, int deliveryTime, float minIncrease) {
 		this.itemID = item;
 		this.value = value;
+		this.initialValue = value;
 		this.deliveryTime = deliveryTime;
 		this.minIncrease = minIncrease;
 		this.lastBidder = null;
@@ -41,6 +42,10 @@ public class Bid implements java.io.Serializable{
 	
 	public float getValue() {
 		return this.value;
+	}
+	
+	public float getInitialValue() {
+		return this.initialValue;
 	}
 	
 	public String getItem() {

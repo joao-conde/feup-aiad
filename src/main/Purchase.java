@@ -15,12 +15,12 @@ public class Purchase implements java.io.Serializable{
 	public Purchase(Bid bid, String sellerID, int realDeliveryTime, float maxValue) {
 		this.itemID = bid.getItem();
 		this.sellerID = sellerID;		
-		computeRating(realDeliveryTime, bid.getDeliveryTime(), bid.getValue(), maxValue);
+		computeRating(realDeliveryTime, bid.getDeliveryTime(), bid.getValue(), maxValue, bid.getInitialValue());
 	}
 	
-	private void computeRating(int realDeliveryTime, int expectedDeliveryTime, float value, float maxValue) {
-		float timeRating = (float)(expectedDeliveryTime/realDeliveryTime),
-			  valueRating = maxValue/value;
+	private void computeRating(int realDeliveryTime, int expectedDeliveryTime, float value, float maxValue, float initVal) {
+		float timeRating = (float)(expectedDeliveryTime/(expectedDeliveryTime + realDeliveryTime)),
+			  valueRating = (maxValue - value)/(maxValue - initVal);
 		
 		this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
 	}

@@ -34,7 +34,7 @@ public class BuyerAgent extends Agent{
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>(); 
 	
 	private float computeAverageRating(String sellerID) {
-		float sumRatings = 0, sellerPurchases = 0;
+		float sumRatings = 0, sellerPurchases = 0, average;
 		for(Purchase p: purchases) {
 			if(p.getSellerID().equals(sellerID)) {
 				sellerPurchases++;
@@ -161,7 +161,8 @@ public class BuyerAgent extends Agent{
 				try {
 					Bid bid = (Bid)accept.getContentObject();
 					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(), Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), items.get(bid.getItem()));
-					
+					computeAverageRating(accept.getSender().getLocalName());
+					System.out.println("--------------------->>>>>>CALCULATED RATING " + purchase.getRating());
 					for(Purchase p: purchases) {
 						if(p.getItemID().equals(purchase.getItemID())) {
 							if(p.getRating() < purchase.getRating()) {
@@ -214,6 +215,7 @@ public class BuyerAgent extends Agent{
 									p.getSellerID().equals(msg.getSender().getLocalName())) {
 								reply.setContent(Utils.PURCHASE);
 								items.remove(p.getItemID());
+								
 								send(reply);
 								return;
 							}

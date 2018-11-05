@@ -39,7 +39,8 @@ public class Market {
 	public void initializeAgents() throws StaleProxyException {
 
 		
-		Object[] b1 = {new SimpleEntry<String,Float>("banana",(float)36.20), new SimpleEntry<String,Float>("pessego",(float)100.00)},
+		Object[] b1 = {new SimpleEntry<String,Float>("banana",(float)36.20), new SimpleEntry<String,Float>("pessego",(float)100.00),
+						new SimpleEntry<String,Float>("noggers",(float)100.00), new SimpleEntry<String,Float>("meloes",(float)100.00)},
 			     b2 = {new SimpleEntry<String,Float>("banana", (float) 17.10), new SimpleEntry<String,Float>("morango", (float) 15.30)},
 			     b3 = {new SimpleEntry<String,Float>("pessego", (float) 50.00), new SimpleEntry<String,Float>("pera", (float) 12.50)};
 		
@@ -53,7 +54,8 @@ public class Market {
 		buyer2.start();
 		buyer3.start();
 		
-		Object[] s1 = {0, new Bid("banana", (float)9.00, 10,(float)0.05)},
+		Object[] s1 = {0, new Bid("banana", (float)9.00, 10,(float)0.05), new Bid("meloes", (float)9.00, 10,(float)0.05),
+						new Bid("noggers", (float)9.00, 10,(float)0.05)},
 			  s2 = {10, new Bid("pessego",(float)12.00, 5,(float)0.10)};
 		
 		//create new seller agents
