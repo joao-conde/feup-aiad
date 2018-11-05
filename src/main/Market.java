@@ -11,7 +11,7 @@ import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
 import utilities.Utils;
 
-public class Market {
+public class Market { 
 		
 	private Runtime jadeRt; //JADE runtime
 	private ContainerController mainContainer; //Main JADE container
@@ -53,8 +53,8 @@ public class Market {
 		buyer2.start();
 		buyer3.start();
 		
-		Bid[] s1 = {new Bid("banana", (float)9.00, 10,(float)0.05)},
-			  s2 = {new Bid("pessego",(float)12.00, 5,(float)0.10)};
+		Object[] s1 = {0, new Bid("banana", (float)9.00, 10,(float)0.05)},
+			  s2 = {10, new Bid("pessego",(float)12.00, 5,(float)0.10)};
 		
 		//create new seller agents
 		AgentController seller = this.mainContainer.createNewAgent("sellerAgent", "main.SellerAgent", s1),

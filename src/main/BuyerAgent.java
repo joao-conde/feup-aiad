@@ -2,8 +2,6 @@ package main;
 
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.logging.FileHandler;
-import java.util.logging.LogRecord;
 import java.util.ArrayList;
 
 import main.Purchase;
@@ -54,7 +52,7 @@ public class BuyerAgent extends Agent{
 		
 		agentName = this.getLocalName();
 		
-		initializeLogger();
+		logger = Utils.createLogger(this.getClass().getName(), agentName);
 		
 		for(Object arg: args) {
 			SimpleEntry<String,Float> argument = (SimpleEntry<String,Float>) arg;
@@ -75,18 +73,6 @@ public class BuyerAgent extends Agent{
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	    addBehaviour(new Confirmation());
-	}
-	
-	public void initializeLogger() {
-		logger = Logger.getJADELogger(this.getClass().getName() + "." + agentName);
-		logger.setLevel(Logger.FINEST);
-		try {
-			FileHandler fh = new FileHandler(Utils.LOG_PATH + agentName + ".log");
-			fh.setFormatter(Utils.messageFormatter());
-			logger.addHandler(fh);
-		} catch (SecurityException | IOException e) {
-			e.printStackTrace();
-		}
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -174,7 +160,7 @@ public class BuyerAgent extends Agent{
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				try {
 					Bid bid = (Bid)accept.getContentObject();
-					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(), 5, items.get(bid.getItem()));
+					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(), Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), items.get(bid.getItem()));
 					
 					for(Purchase p: purchases) {
 						if(p.getItemID().equals(purchase.getItemID())) {

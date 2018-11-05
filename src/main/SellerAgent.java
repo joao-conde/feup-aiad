@@ -2,6 +2,7 @@ package main;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Random;
 import java.util.Vector;
 import java.util.logging.FileHandler;
 
@@ -29,37 +30,30 @@ public class SellerAgent extends Agent {
 	private static final long serialVersionUID = 7888357163660384182L;
 	private Logger logger;
 	private ArrayList<Bid> bids = new ArrayList<Bid>();
-	private Integer currentBidIndex = 0;
+	private Integer extraDelay, currentBidIndex = 0;
 	private AID[] buyerAgentsToCurrentItem;
 	private Bid highestBid = null;
-	private String agentName;	
+	private String agentName;
+	
 
 	public void setup() {
 
 		Object[] args = this.getArguments();
-		for(Object arg: args) {
-			Bid bid = (Bid)arg;
+		
+		extraDelay = Integer.parseInt(args[0].toString());
+		
+		for(int i = 1; i < args.length; i++) {
+			Bid bid = (Bid)args[i];
 			bids.add(bid);
 		}
 		
 		agentName = this.getLocalName();
 		
-		initializeLogger();
+		logger = Utils.createLogger(this.getClass().getName(), agentName);
 		
 		addBehaviour(new MainBehaviour(this));
 	}
 	
-	public void initializeLogger() {
-		logger = Logger.getJADELogger(this.getClass().getName() + "." + agentName);
-		logger.setLevel(Logger.FINEST);
-		try {
-			FileHandler fh = new FileHandler(Utils.LOG_PATH + agentName + ".log");
-			fh.setFormatter(Utils.messageFormatter());
-			logger.addHandler(fh);
-		} catch (SecurityException | IOException e) {
-			e.printStackTrace();
-		}
-	}
 	
 	public Bid getCurrentBid() {
 		return bids.get(currentBidIndex);
@@ -235,9 +229,18 @@ public class SellerAgent extends Agent {
 			
 			if(acceptances.size() == 1) {
 				ACLMessage winnerMessage = (ACLMessage) acceptances.get(0);
-				winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-				BidKeeper keeper = new BidKeeper(myAgent, 1000);
-				addBehaviour(keeper);
+				
+				Bid bid;
+				try {
+					bid = (Bid) winnerMessage.getContentObject();
+					winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
+					winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime() + extraDelay)).toString()); //TODO
+					BidKeeper keeper = new BidKeeper(myAgent, 1000);
+					addBehaviour(keeper);
+				} 
+				catch (UnreadableException e) {
+					e.printStackTrace();
+				}
 			} 
 			else if(acceptances.size() != 0) {
 				newIteration(acceptances);
@@ -254,6 +257,10 @@ public class SellerAgent extends Agent {
 		}
 		
 		
+		private Integer computeDelay(int min, int max) {
+			Random r = new Random(System.currentTimeMillis());
+			return r.nextInt(max-min) + min;
+		}
 		
 		private class BidKeeper extends WakerBehaviour{
 
@@ -267,10 +274,10 @@ public class SellerAgent extends Agent {
 			public void onWake() {
 				
 				if(highestBid != null) {
-					AID teste = getAID(highestBid.getLastBidder());
+					AID buyer = getAID(highestBid.getLastBidder());
 					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
 					message.setSender(getAID());
-					message.addReceiver(teste);
+					message.addReceiver(buyer);
 					
 					try {
 						message.setContentObject(highestBid);
@@ -310,6 +317,4 @@ public class SellerAgent extends Agent {
 		}
 		
 	}
-	
-	
 }
