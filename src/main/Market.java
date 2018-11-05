@@ -39,28 +39,26 @@ public class Market {
 	public void initializeAgents() throws StaleProxyException {
 
 		
-		Object[] b1 = {new SimpleEntry<String,Float>("banana",(float)36.20), new SimpleEntry<String,Float>("pessego",(float)100.00),
-						new SimpleEntry<String,Float>("noggers",(float)100.00), new SimpleEntry<String,Float>("meloes",(float)100.00)},
-			     b2 = {new SimpleEntry<String,Float>("banana", (float) 17.10), new SimpleEntry<String,Float>("morango", (float) 15.30)},
-			     b3 = {new SimpleEntry<String,Float>("pessego", (float) 50.00), new SimpleEntry<String,Float>("pera", (float) 12.50)};
+		Object[] b1 = {new SimpleEntry<String,Float>("batatas",(float)15.0)},
+			     b2 = {new SimpleEntry<String,Float>("batatas", (float) 15.5),new SimpleEntry<String,Float>("bananas",(float)17)},
+			     b3 = {new SimpleEntry<String,Float>("batatas", (float) 17.00)};
 		
 		//create new buyer agents
-		AgentController buyer = this.mainContainer.createNewAgent("buyerAgent", "main.BuyerAgent", b1),
-						buyer2 = this.mainContainer.createNewAgent("buyerAgent2", "main.BuyerAgent", b2),
-						buyer3 = this.mainContainer.createNewAgent("buyerAgent3", "main.BuyerAgent", b3);
+		AgentController buyer = this.mainContainer.createNewAgent("Carlos", "main.BuyerAgent", b1),
+						buyer2 = this.mainContainer.createNewAgent("Toy", "main.BuyerAgent", b2);
+						//buyer3 = this.mainContainer.createNewAgent("buyerAgent3", "main.BuyerAgent", b3);
 		
 		//start new buyer agents 
 		buyer.start();
 		buyer2.start();
-		buyer3.start();
+		//buyer3.start();
 		
-		Object[] s1 = {0, new Bid("banana", (float)9.00, 10,(float)0.05), new Bid("meloes", (float)9.00, 10,(float)0.05),
-						new Bid("noggers", (float)9.00, 10,(float)0.05)},
-			  s2 = {10, new Bid("pessego",(float)12.00, 5,(float)0.10)};
+		Object[] s1 = {0, new Bid("batatas", (float)10.00, 5,(float)0.5),new Bid("bananas",(float)12,6,(float)0.4)},
+			  s2 = {0, new Bid("batatas",(float)9.00, 6,(float)0.5)};
 		
 		//create new seller agents
-		AgentController seller = this.mainContainer.createNewAgent("sellerAgent", "main.SellerAgent", s1),
-						seller2 = this.mainContainer.createNewAgent("sellerAgent2", "main.SellerAgent", s2);
+		AgentController seller = this.mainContainer.createNewAgent("Antonio", "main.SellerAgent", s1),
+						seller2 = this.mainContainer.createNewAgent("HLC", "main.SellerAgent", s2);
 		
 		//start new sellers
 		seller.start();

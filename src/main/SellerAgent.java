@@ -297,7 +297,17 @@ public class SellerAgent extends Agent {
 			protected void handleInform() {
 				MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
 				ACLMessage msg = null;
-				while(msg == null) msg = receive(template);
+				while(msg == null) {
+					System.out.println("PORQUE?'"); 
+					try {
+						Thread.sleep(2000);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					msg = receive(template);
+					block();
+				}
 				
 				if(msg.getContent().equals(Utils.PURCHASE)) {
 					logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());

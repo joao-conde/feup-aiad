@@ -19,6 +19,10 @@ public class Purchase implements java.io.Serializable{
 	}
 	
 	private void computeRating(int realDeliveryTime, int expectedDeliveryTime, float value, float maxValue, float initVal) {
+		System.out.println("RealDelivery: " + realDeliveryTime);
+		System.out.println("Value: " + value);
+		System.out.println("MaxValue: " + maxValue);
+		System.out.println("initValue: " + initVal);
 		float timeRating = (float)(expectedDeliveryTime/(expectedDeliveryTime + realDeliveryTime)),
 			  valueRating = (maxValue - value)/(maxValue - initVal);
 		

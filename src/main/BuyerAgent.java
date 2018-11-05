@@ -41,7 +41,7 @@ public class BuyerAgent extends Agent{
 				sumRatings += p.getRating();
 			}
 		}
-		return (float) (sellerPurchases == 0 ? 0.5 : sumRatings/sellerPurchases);
+		return (float) (sellerPurchases == 0 ? 0.8 : sumRatings/sellerPurchases);
 	}
 	
 	protected void setup() {	
