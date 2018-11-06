@@ -34,14 +34,13 @@ public class BuyerAgent extends Agent{
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>(); 
 	
 	private float computeAverageRating(String sellerID) {
-		float sumRatings = 0, sellerPurchases = 0, average;
+		float sumRatings = 0;
 		for(Purchase p: purchases) {
 			if(p.getSellerID().equals(sellerID)) {
-				sellerPurchases++;
 				sumRatings += p.getRating();
 			}
 		}
-		return (float) (sellerPurchases == 0 ? 0.8 : sumRatings/sellerPurchases);
+		return (float) (purchases.size() == 0 ? 0.8 : sumRatings/purchases.size());
 	}
 	
 	protected void setup() {	
@@ -110,7 +109,9 @@ public class BuyerAgent extends Agent{
 				try {
 					Bid receivedBid = (Bid) cfp.getContentObject();
 					
+					logger.fine(agentName+": Received a CFP from "+cfp.getSender().getLocalName()+" to "+receivedBid.getItem());
 					if(!items.containsKey(receivedBid.getItem())) {
+						logger.fine("Not looking for item anymore");
 						reply.setPerformative(ACLMessage.REFUSE);
 						return reply;
 					}
@@ -118,9 +119,9 @@ public class BuyerAgent extends Agent{
 					if(cfp.getProtocol() == Utils.CFP_PROTOCOL) {
 						String sellerID = cfp.getSender().getLocalName();
 						ratings.put(sellerID, computeAverageRating(sellerID));
+						logger.fine("First CFP, calculating average rating for seller " + sellerID);
 					}
 					
-					logger.fine(agentName+": Received a CFP from "+cfp.getSender().getLocalName()+" to "+receivedBid.getItem());
 					
 					String lastBidderName=null;
 					reply.setPerformative(ACLMessage.PROPOSE);
@@ -161,7 +162,7 @@ public class BuyerAgent extends Agent{
 				try {
 					Bid bid = (Bid)accept.getContentObject();
 					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(), Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), items.get(bid.getItem()));
-					computeAverageRating(accept.getSender().getLocalName());
+					//computeAverageRating(accept.getSender().getLocalName());
 					System.out.println("--------------------->>>>>>CALCULATED RATING " + purchase.getRating());
 					for(Purchase p: purchases) {
 						if(p.getItemID().equals(purchase.getItemID())) {

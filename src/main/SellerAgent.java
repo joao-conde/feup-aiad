@@ -127,6 +127,7 @@ public class SellerAgent extends Agent {
 				}
 				
 				if (result.length > 1) {
+					logger.fine("Only one bidder, not selling");
 					this.stop();
 				}
 				
@@ -194,8 +195,7 @@ public class SellerAgent extends Agent {
 								highestBid = receivedBid;
 								highestBid.setLastBidder(response.getSender().getLocalName());
 								logger.fine("HighestBidder: "+highestBid.getLastBidder()+ " with value: "+highestBid.getValue());
-							}
-							
+							}							
 						} else {
 							highestBid = receivedBid;
 							highestBid.setLastBidder(response.getSender().getLocalName());
@@ -251,7 +251,7 @@ public class SellerAgent extends Agent {
 						e.printStackTrace();
 					}
 					myAgent.send(message);					
-					logger.fine("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
+					logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
 					
 					addBehaviour(keeper);
 				} 
