@@ -11,6 +11,7 @@ import java.util.HashMap;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -71,7 +72,7 @@ public class BuyerAgent extends Agent{
 	    }
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
-	    addBehaviour(new Confirmation());
+	    addBehaviour(new ConfirmationDispatcher(this,MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -161,7 +162,13 @@ public class BuyerAgent extends Agent{
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				try {
 					Bid bid = (Bid)accept.getContentObject();
-					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(), Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), items.get(bid.getItem()));
+					if(!items.containsKey(bid.getItem()))
+						return null;
+					System.out.println(items.containsKey(bid.getItem()));
+					Purchase purchase = new Purchase(bid, 
+							accept.getSender().getLocalName(), 
+							Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), 
+							items.get(bid.getItem()));
 					//computeAverageRating(accept.getSender().getLocalName());
 					System.out.println("--------------------->>>>>>CALCULATED RATING " + purchase.getRating());
 					for(Purchase p: purchases) {
@@ -186,21 +193,48 @@ public class BuyerAgent extends Agent{
 
 	}
 	
-	
-	
-	public class Confirmation extends CyclicBehaviour {
+	private class ConfirmationDispatcher extends SSResponderDispatcher {
+
 
 		private static final long serialVersionUID = 1L;
+
+
+		public ConfirmationDispatcher(Agent a, MessageTemplate tpl) {
+			super(a, tpl);
+		}
+
+
+		@Override
+		protected Behaviour createResponder(ACLMessage cfp) {
+			return new Confirmation(myAgent,cfp);
+		}
 		
-		MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF);    
-		ACLMessage reply;
+	}
+	
+	
+	
+	public class Confirmation extends Behaviour {
+
+		private static final long serialVersionUID = 1L;
+		ACLMessage msg;
+		Boolean finished = false;
+		public Confirmation(Agent myAgent,ACLMessage msg) {
+			this.msg = msg;
+			this.myAgent = myAgent;
+		}
+		
+		
 
 		@Override
 		public void action() {
-			ACLMessage msg = receive( template );
+				
+				if(msg == null) {
+					System.out.println("Messagem null");
+					return;
+				}
+				ACLMessage reply;
 			
-			if (msg!=null) {
-				reply = msg.createReply();
+				reply = this.msg.createReply();
 				reply.setPerformative(ACLMessage.INFORM);
 				reply.addReceiver(msg.getSender());
 				
@@ -215,6 +249,7 @@ public class BuyerAgent extends Agent{
 							if(p.getItemID().equals(receivedBid.getItem()) &&
 									p.getSellerID().equals(msg.getSender().getLocalName())) {
 								reply.setContent(Utils.PURCHASE);
+								logger.fine("Confirming purchase");
 								items.remove(p.getItemID());
 								
 								send(reply);
@@ -228,9 +263,18 @@ public class BuyerAgent extends Agent{
 				} catch (UnreadableException e) {
 					e.printStackTrace();
 				}
+				finished=true;
 			  
-			}
-			block(); //this block reduces CPU usage from 80% to 8% XD
+			
+			//block(); //this block reduces CPU usage from 80% to 8% XD
+		}
+
+
+
+		@Override
+		public boolean done() {
+			// TODO Auto-generated method stub
+			return this.finished;
 		}
 	}	
 	

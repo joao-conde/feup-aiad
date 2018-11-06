@@ -8,6 +8,7 @@ import java.util.logging.FileHandler;
 
 import jade.core.AID;
 import jade.core.Agent;
+import jade.core.behaviours.CyclicBehaviour;
 import jade.core.behaviours.SequentialBehaviour;
 import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.TickerBehaviour;
@@ -73,6 +74,8 @@ public class SellerAgent extends Agent {
 		
 		public MainBehaviour(Agent a) {
 			super(a);
+		
+			
 		}
 		
 		@Override
@@ -82,6 +85,7 @@ public class SellerAgent extends Agent {
 				finished = true;
 				return;
 			}
+			
 			SequentialBehaviour fetchAndPropose = new SequentialBehaviour();
 			FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(myAgent, 3000);
 			FIPAContractNetInit b2 = new FIPAContractNetInit(myAgent, new ACLMessage(ACLMessage.CFP));
@@ -125,11 +129,12 @@ public class SellerAgent extends Agent {
 				for (int i = 0; i < result.length; ++i) {
 					buyerAgentsToCurrentItem[i] = result[i].getName();
 				}
-				
-				if (result.length > 1) {
-					logger.fine("Only one bidder, not selling");
+				/*if (result.length > 1) {
+					
 					this.stop();
-				}
+				}*/
+				logger.fine("Only one bidder, not selling");
+				this.stop();
 				
 			} catch (FIPAException fe) {
 				fe.printStackTrace();
@@ -303,23 +308,46 @@ public class SellerAgent extends Agent {
 					}
 					myAgent.send(message);					
 					logger.fine("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());*/
-					handleInform();
+					addBehaviour(new HandleInform());
 				} else {
 					System.err.println("Error checking ended auction status");
 				}
-				onEnd();	
-				this.stop();
+					
 			}	
 			
-			protected void handleInform() {
+			private class HandleInform  extends CyclicBehaviour{
+
+				@Override
+				public void action() {
+					MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
+					ACLMessage msg = receive(template);
+					if(msg != null) {
+						if(msg.getContent().equals(Utils.PURCHASE)) {
+							logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
+							bids.remove(bids.get(currentBidIndex))	;
+						}
+						else {
+							logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
+							currentBidIndex++;
+							currentBidIndex %= bids.size();
+						}	
+						this.block();
+						}				
+								
+					}	
+					
+				}
+				
+			
+			
+			/*protected void handleInform() {
 				MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
 				ACLMessage msg = null;
 				while(msg == null) {
-					System.out.println("PORQUE?'"); 
 					msg = receive(template);
-					/*block()*/;
+					block();
 				}
-				
+				logger.fine(msg.toString());
 				if(msg.getContent().equals(Utils.PURCHASE)) {
 					logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
 					bids.remove(bids.get(currentBidIndex))	;
@@ -328,16 +356,18 @@ public class SellerAgent extends Agent {
 					logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
 					currentBidIndex++;
 					currentBidIndex %= bids.size();
-				}
-				onEnd();				
-			}
+				}				
+			}*/
 			
 			public int onEnd() {
 				if(!bids.isEmpty()) {
 					this.myAgent.addBehaviour(new MainBehaviour(myAgent));
 					logger.fine("RESTARTING AUCTION");
 				}
-				else myAgent.doDelete();
+				else {
+					logger.fine("AGENT KILLED");
+					myAgent.doDelete();
+				}
 				return 0;
 			}
 		}

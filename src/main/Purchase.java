@@ -26,8 +26,11 @@ public class Purchase implements java.io.Serializable{
 		float timeRating = (float)(expectedDeliveryTime/(expectedDeliveryTime + realDeliveryTime)),
 			  valueRating = (maxValue - value)/(maxValue - initVal);
 		
-		this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
+		
+		//this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
+		this.rating = 1;
 	}
+	
 	
 	public String getItemID() {
 		return itemID;
