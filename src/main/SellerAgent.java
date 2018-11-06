@@ -133,7 +133,7 @@ public class SellerAgent extends Agent {
 					
 					this.stop();
 				}*/
-				logger.fine("Only one bidder, not selling");
+				//logger.fine("Only one bidder, not selling");
 				this.stop();
 				
 			} catch (FIPAException fe) {
@@ -312,11 +312,11 @@ public class SellerAgent extends Agent {
 				} else {
 					System.err.println("Error checking ended auction status");
 				}
+				
 					
 			}	
 			
 			private class HandleInform  extends CyclicBehaviour{
-
 				@Override
 				public void action() {
 					MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
@@ -324,17 +324,20 @@ public class SellerAgent extends Agent {
 					if(msg != null) {
 						if(msg.getContent().equals(Utils.PURCHASE)) {
 							logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
-							bids.remove(bids.get(currentBidIndex))	;
+							if(!bids.isEmpty())
+								bids.remove(bids.get(currentBidIndex))	;
 						}
 						else {
 							logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
 							currentBidIndex++;
 							currentBidIndex %= bids.size();
-						}	
+						}
 						this.block();
+					
 						}				
 								
-					}	
+					}
+				
 					
 				}
 				
