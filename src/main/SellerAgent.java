@@ -87,7 +87,7 @@ public class SellerAgent extends Agent {
 			}
 			
 			SequentialBehaviour fetchAndPropose = new SequentialBehaviour();
-			FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(myAgent, 3000);
+			FetchBuyersBehaviour b1 = new FetchBuyersBehaviour(myAgent, 2000);
 			FIPAContractNetInit b2 = new FIPAContractNetInit(myAgent, new ACLMessage(ACLMessage.CFP));
 			fetchAndPropose.addSubBehaviour(b1);
 			fetchAndPropose.addSubBehaviour(b2);
@@ -106,7 +106,8 @@ public class SellerAgent extends Agent {
 
 
 		private static final long serialVersionUID = 1L;
-		//private boolean finished 
+		
+		private int attempts = 0;
 
 		public FetchBuyersBehaviour(Agent a, long period) {
 			super(a, period);
@@ -122,21 +123,21 @@ public class SellerAgent extends Agent {
 			sd.setName(getCurrentBid().getItem());
 			template.addServices(sd);
 
-			
 			try {
 				DFAgentDescription[] result = DFService.search(myAgent, template);
 				buyerAgentsToCurrentItem = new AID[result.length];
 				for (int i = 0; i < result.length; ++i) {
 					buyerAgentsToCurrentItem[i] = result[i].getName();
 				}
-				/*if (result.length > 1) {
-					
-					this.stop();
-				}*/
-				//logger.fine("Only one bidder, not selling");
-				this.stop();
 				
-			} catch (FIPAException fe) {
+				if(result.length <= 1 && attempts <= 2) {
+					attempts++;
+				}
+				else {
+					this.stop();
+				}
+			} 
+			catch (FIPAException fe) {
 				fe.printStackTrace();
 			}
 
@@ -241,23 +242,7 @@ public class SellerAgent extends Agent {
 					winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
 					winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime() + extraDelay)).toString());
 					
-					
 					BidKeeper keeper = new BidKeeper(myAgent, 2);
-					
-					
-					/*AID buyer = getAID(highestBid.getLastBidder());
-					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
-					message.setSender(getAID());
-					message.addReceiver(buyer);
-					
-					try {
-						message.setContentObject(highestBid);
-					} catch (IOException e) {
-						e.printStackTrace();
-					}
-					myAgent.send(message);					
-					logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());*/
-					
 					addBehaviour(keeper);
 				} 
 				catch (UnreadableException e) {
@@ -328,8 +313,11 @@ public class SellerAgent extends Agent {
 							} else {
 								if(msg.getContent().equals(Utils.PURCHASE)) {
 									logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
-									if(!bids.isEmpty())
+									if(!bids.isEmpty()) {
 										bids.remove(bids.get(currentBidIndex));
+										
+										if(currentBidIndex >= bids.size()) currentBidIndex = bids.size() - 1;
+									}
 								}
 								else if(msg.getContent().equals(Utils.CANCEL)){
 									logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
@@ -360,27 +348,6 @@ public class SellerAgent extends Agent {
 				
 					
 			}
-				
-			
-			
-			/*protected void handleInform() {
-				MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
-				ACLMessage msg = null;
-				while(msg == null) {
-					msg = receive(template);
-					block();
-				}
-				logger.fine(msg.toString());
-				if(msg.getContent().equals(Utils.PURCHASE)) {
-					logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
-					bids.remove(bids.get(currentBidIndex))	;
-				}
-				else {
-					logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
-					currentBidIndex++;
-					currentBidIndex %= bids.size();
-				}				
-			}*/
 			
 		}
 		

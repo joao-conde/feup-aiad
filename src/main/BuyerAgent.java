@@ -10,8 +10,6 @@ import utilities.Utils;
 import java.util.HashMap;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.CyclicBehaviour;
-import jade.core.behaviours.SimpleBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -257,8 +255,6 @@ public class BuyerAgent extends Agent{
 			this.myAgent = myAgent;
 		}
 		
-		
-
 		@Override
 		public void action() {
 				
