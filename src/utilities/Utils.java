@@ -18,6 +18,7 @@ public class Utils {
 		SD_BUY = "SD_BUY",
 		SD_SELL = "SD_SELL",	
 		CFP_PROTOCOL = "FCFP",
+		WAIT = "WAIT",
 		
 		LOG_PATH = "logs/";
 		

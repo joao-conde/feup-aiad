@@ -32,16 +32,21 @@ public class BuyerAgent extends Agent{
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private HashMap<String,Integer> attempts = new HashMap<String,Integer>(); //itemID, attempts
 	private HashMap<String,Float> ratings = new HashMap<String,Float>(); //sellerID, averageRating
-	private ArrayList<Purchase> purchases = new ArrayList<Purchase>(); 
+	private ArrayList<Purchase> purchases = new ArrayList<Purchase>();
+	private HashMap<String, ArrayList<String>> liveAuctions = new HashMap<String,ArrayList<String>>(); //itemID, list of sellers
 	
 	private float computeAverageRating(String sellerID) {
 		float sumRatings = 0;
+		boolean atLeastOne = false;
 		for(Purchase p: purchases) {
+			logger.fine(p.getItemID());
 			if(p.getSellerID().equals(sellerID)) {
+				atLeastOne = true;
 				sumRatings += p.getRating();
 			}
 		}
-		return (float) (purchases.size() == 0 ? 0.8 : sumRatings/purchases.size());
+		
+		return (float) ((purchases.size() == 0 || atLeastOne == false) ? 0.8 : sumRatings/purchases.size());
 	}
 	
 	protected void setup() {	
@@ -118,9 +123,19 @@ public class BuyerAgent extends Agent{
 					}
 					
 					if(cfp.getProtocol() == Utils.CFP_PROTOCOL) {
+						logger.fine("CFP");
 						String sellerID = cfp.getSender().getLocalName();
 						ratings.put(sellerID, computeAverageRating(sellerID));
 						logger.fine("First CFP, calculating average rating for seller " + sellerID);
+						ArrayList<String> sellers;
+						if((sellers = liveAuctions.get(receivedBid.getItem())) == null) {
+							sellers = new ArrayList<String>();
+							sellers.add(sellerID);
+							liveAuctions.put(receivedBid.getItem(), sellers);
+						} else {
+							sellers.add(sellerID);
+							System.out.println(sellers);
+						}
 					}
 					
 					
@@ -136,17 +151,31 @@ public class BuyerAgent extends Agent{
 							logger.fine(receivedBid.getItem() + " ITEM RATE OF SELLER " + ratings.get(cfp.getSender().getLocalName()));
 							if(receivedBid.getValue() + receivedBid.getMinIncrease() <= items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName()))
 								receivedBid.setNewValue(Utils.round(receivedBid.getValue()+receivedBid.getMinIncrease(), 3));
-							else
+							else {
+								logger.fine("REFUSE");
 								reply.setPerformative(ACLMessage.REFUSE);
+								ArrayList<String> sellers;
+								if((sellers = liveAuctions.get(receivedBid.getItem())) != null) {
+									sellers.remove(sellers.indexOf(cfp.getSender().getLocalName()));
+								}
+									
+							}
 						}
 						
 					} else {
 						//first bid (cfp call)
-						if(receivedBid.getValue() > items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName()))
+						if(receivedBid.getValue() > items.get(receivedBid.getItem()) * ratings.get(cfp.getSender().getLocalName())) {
+							float value = ratings.get(cfp.getSender().getLocalName());
+							logger.fine("FIRST CFP REFUSE");
 							reply.setPerformative(ACLMessage.REFUSE); //first value is already too high
+							ArrayList<String> sellers;
+							if((sellers = liveAuctions.get(receivedBid.getItem())) != null) {
+								sellers.remove(sellers.indexOf(cfp.getSender().getLocalName()));
+							}
+						}
 					}
 					reply.setContentObject(receivedBid);
-					logger.fine(agentName+": Propose to "+receivedBid.getItem()+" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
+					logger.fine(agentName+": Propose to "+receivedBid.getItem()+" from "+ cfp.getSender().getLocalName() +" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
 					
 				} catch (UnreadableException | IOException e) {
 					e.printStackTrace();
@@ -181,6 +210,11 @@ public class BuyerAgent extends Agent{
 						}
 					}
 					purchases.add(purchase);
+					ArrayList<String> sellers;
+					if((sellers = liveAuctions.get(bid.getItem())) != null) {
+						sellers.remove(sellers.indexOf(accept.getSender().getLocalName()));
+						System.out.println(liveAuctions.get(bid.getItem()));
+					}
 					
 				} catch (UnreadableException e) {
 					e.printStackTrace();
@@ -233,40 +267,49 @@ public class BuyerAgent extends Agent{
 					return;
 				}
 				ACLMessage reply;
-			
+				finished = true;
 				reply = this.msg.createReply();
 				reply.setPerformative(ACLMessage.INFORM);
-				reply.addReceiver(msg.getSender());
 				
 				try {
 					Bid receivedBid = (Bid) msg.getContentObject();
 					if(!items.containsKey(receivedBid.getItem())) {
+						logger.fine("Canceling purchase of "+receivedBid.getItem() +" to "+msg.getSender().getLocalName());
 						reply.setContent(Utils.CANCEL);
 					}
 					else {
+						ArrayList<String> sellers;
+						if((sellers = liveAuctions.get(receivedBid.getItem())) != null && !sellers.isEmpty()) {
+							finished = false;
+							reply.setContent(Utils.WAIT);
+							send(reply);
+							return;
+						}
+							
 						
 						for(Purchase p: purchases) {
 							if(p.getItemID().equals(receivedBid.getItem()) &&
 									p.getSellerID().equals(msg.getSender().getLocalName())) {
 								reply.setContent(Utils.PURCHASE);
-								logger.fine("Confirming purchase");
+								logger.fine("Confirming purchase of "+receivedBid.getItem() +" to "+msg.getSender().getLocalName());
 								items.remove(p.getItemID());
 								
 								send(reply);
 								return;
 							}
 						}
-						reply.setContent(Utils.CANCEL);	
-		                send(reply);
+						logger.fine("Canceling purchase of "+receivedBid.getItem() +" to "+msg.getSender().getLocalName());
+						reply.setContent(Utils.CANCEL);
 
 					}
+	                send(reply);
+	                return;
 				} catch (UnreadableException e) {
 					e.printStackTrace();
 				}
-				finished=true;
 			  
 			
-			//block(); //this block reduces CPU usage from 80% to 8% XD
+			block(); //this block reduces CPU usage from 80% to 8% XD
 		}
 
 

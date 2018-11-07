@@ -242,10 +242,10 @@ public class SellerAgent extends Agent {
 					winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime() + extraDelay)).toString());
 					
 					
-					BidKeeper keeper = new BidKeeper(myAgent, 1000);
+					BidKeeper keeper = new BidKeeper(myAgent, 2);
 					
 					
-					AID buyer = getAID(highestBid.getLastBidder());
+					/*AID buyer = getAID(highestBid.getLastBidder());
 					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
 					message.setSender(getAID());
 					message.addReceiver(buyer);
@@ -256,7 +256,7 @@ public class SellerAgent extends Agent {
 						e.printStackTrace();
 					}
 					myAgent.send(message);					
-					logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
+					logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());*/
 					
 					addBehaviour(keeper);
 				} 
@@ -294,12 +294,12 @@ public class SellerAgent extends Agent {
 			
 			@Override
 			public void onWake() {
-				
 				if(highestBid != null) {
-					/*AID buyer = getAID(highestBid.getLastBidder());
+					AID buyer = getAID(highestBid.getLastBidder());
 					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
 					message.setSender(getAID());
 					message.addReceiver(buyer);
+					System.out.println(agentName + " ASKING for "+highestBid.getItem()+ " to "+buyer.getLocalName());
 					
 					try {
 						message.setContentObject(highestBid);
@@ -307,7 +307,7 @@ public class SellerAgent extends Agent {
 						e.printStackTrace();
 					}
 					myAgent.send(message);					
-					logger.fine("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());*/
+					logger.fine("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
 					addBehaviour(new HandleInform());
 				} else {
 					System.err.println("Error checking ended auction status");
@@ -322,24 +322,44 @@ public class SellerAgent extends Agent {
 					MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
 					ACLMessage msg = receive(template);
 					if(msg != null) {
-						if(msg.getContent().equals(Utils.PURCHASE)) {
-							logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
-							if(!bids.isEmpty())
-								bids.remove(bids.get(currentBidIndex))	;
-						}
-						else {
-							logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
-							currentBidIndex++;
-							currentBidIndex %= bids.size();
-						}
-						this.block();
+							if(msg.getContent().equals(Utils.WAIT)) {
+								logger.fine("waiting for other auctions of the same product");
+								super.reset();
+							} else {
+								if(msg.getContent().equals(Utils.PURCHASE)) {
+									logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
+									if(!bids.isEmpty())
+										bids.remove(bids.get(currentBidIndex));
+								}
+								else if(msg.getContent().equals(Utils.CANCEL)){
+									logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
+									currentBidIndex++;
+									currentBidIndex %= bids.size();
+								}
+								onEnd();
+							}
 					
-						}				
+						}
+					else
+						this.block();
 								
+				}
+				
+				public int onEnd() {
+					if(!bids.isEmpty()) {
+						this.myAgent.addBehaviour(new MainBehaviour(myAgent));
+						highestBid = null;
+						logger.fine("RESTART/NEW AUCTION");
 					}
+					else {
+						logger.fine("AGENT KILLED");
+						myAgent.doDelete();
+					}
+					return 0;
+				} 
 				
 					
-				}
+			}
 				
 			
 			
@@ -362,17 +382,6 @@ public class SellerAgent extends Agent {
 				}				
 			}*/
 			
-			public int onEnd() {
-				if(!bids.isEmpty()) {
-					this.myAgent.addBehaviour(new MainBehaviour(myAgent));
-					logger.fine("RESTARTING AUCTION");
-				}
-				else {
-					logger.fine("AGENT KILLED");
-					myAgent.doDelete();
-				}
-				return 0;
-			}
 		}
 		
 	}

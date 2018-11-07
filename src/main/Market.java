@@ -45,13 +45,13 @@ public class Market {
 		
 		//create new buyer agents
 		AgentController buyer = this.mainContainer.createNewAgent("Carlos", "main.BuyerAgent", b1),
-						buyer2 = this.mainContainer.createNewAgent("Toy", "main.BuyerAgent", b2);
-						//buyer3 = this.mainContainer.createNewAgent("buyerAgent3", "main.BuyerAgent", b3);
+						buyer2 = this.mainContainer.createNewAgent("Toy", "main.BuyerAgent", b2),
+						buyer3 = this.mainContainer.createNewAgent("buyerAgent3", "main.BuyerAgent", b3);
 		
 		//start new buyer agents 
 		buyer.start();
 		buyer2.start();
-		//buyer3.start();
+		buyer3.start();
 		
 		Object[] s1 = {0, new Bid("batatas", (float)10.00, 5,(float)0.5),new Bid("bananas",(float)12,6,(float)0.4)},
 			  s2 = {0, new Bid("batatas",(float)9.00, 6,(float)0.5)};
