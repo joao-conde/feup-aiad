@@ -143,9 +143,10 @@ public class BuyerAgent extends Agent{
 						
 						for(AID buyerAID: buyers) askRates.addReceiver(buyerAID);
 						//TODO
+						
 						InformDispatcher idisp = new InformDispatcher(this.myAgent, MessageTemplate.MatchPerformative(ACLMessage.INFORM), buyers.length);
 						addBehaviour(idisp);
-						
+						System.out.println("MESSAGES: " + buyers.length);
 						send(askRates);
 						
 						Thread.sleep(3000);
@@ -216,11 +217,20 @@ public class BuyerAgent extends Agent{
 				AID[] buyers = null;
 				try {
 					DFAgentDescription[] result = DFService.search(myAgent, template);
-					buyers = new AID[result.length];
+					buyers = new AID[result.length-1];
+					System.out.println("LENGTH: " + buyers.length);
+					int a = 0;
 					for (int i = 0; i < result.length; ++i){
-						if(!result[i].getName().equals(this.getAgent().getAID()))
-							buyers[i] = result[i].getName();
+						if(!result[i].getName().equals(this.getAgent().getAID())) {
+							buyers[a] = result[i].getName();
+							a++;
+						}else {
+							System.out.println("NAO");
+						}
+							
+						
 					}
+					
 				} 
 				catch (FIPAException fe) {
 					fe.printStackTrace();
@@ -308,6 +318,7 @@ public class BuyerAgent extends Agent{
 			}
 			
 			private void handleRatingRequests() {
+				
 				System.out.println("HI FROM HANDLER");//TODO
 				ACLMessage reply = msg.createReply();
 				String content, sellerID = msg.getContent();
@@ -438,6 +449,8 @@ public class BuyerAgent extends Agent{
 
 			@Override
 			public void action() {
+				
+				System.out.println("ReceivedInform Messages: " + parent.messages);
 				String content = msg.getContent();
 				if(!content.equals("NULL")) {
 					sum += Float.parseFloat(content);
