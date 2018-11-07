@@ -8,6 +8,8 @@ import main.Purchase;
 import utilities.Utils;
 
 import java.util.HashMap;
+import java.util.Iterator;
+
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
@@ -27,6 +29,7 @@ public class BuyerAgent extends Agent{
 	private static final long serialVersionUID = 1L;
 	private Logger logger;
 	private String agentName;
+	private DFAgentDescription dfd;
 	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
 	private HashMap<String,Integer> attempts = new HashMap<String,Integer>(); //itemID, attempts
 	private HashMap<String,Float> ratings = new HashMap<String,Float>(); //sellerID, averageRating
@@ -34,23 +37,22 @@ public class BuyerAgent extends Agent{
 	private HashMap<String, ArrayList<String>> liveAuctions = new HashMap<String,ArrayList<String>>(); //itemID, list of sellers
 	
 	private float computeAverageRating(String sellerID) {
-		float sumRatings = 0;
-		boolean atLeastOne = false;
+		float sumRatings = 0, sellerPurchases = 0;
 		for(Purchase p: purchases) {
 			logger.fine(p.getItemID());
 			if(p.getSellerID().equals(sellerID)) {
-				atLeastOne = true;
+				sellerPurchases++;
 				sumRatings += p.getRating();
 			}
 		}
 		
-		return (float) ((purchases.size() == 0 || atLeastOne == false) ? 0.8 : sumRatings/purchases.size());
+		return (float) (sellerPurchases == 0 ? 0.8 : sumRatings/sellerPurchases);
 	}
 	
 	protected void setup() {	
 		
 		Object[] args = this.getArguments();
-		DFAgentDescription dfd = new DFAgentDescription();
+		dfd = new DFAgentDescription();
 		dfd.setName(getAID());
 		
 		agentName = this.getLocalName();
@@ -66,7 +68,6 @@ public class BuyerAgent extends Agent{
 			sd.setName(argument.getKey());
 			dfd.addServices(sd);
 		}
-		
 	    try {
 	      DFService.register(this, dfd);
 	    }
@@ -281,14 +282,25 @@ public class BuyerAgent extends Agent{
 							send(reply);
 							return;
 						}
-							
-						
+												
 						for(Purchase p: purchases) {
 							if(p.getItemID().equals(receivedBid.getItem()) &&
 									p.getSellerID().equals(msg.getSender().getLocalName())) {
 								reply.setContent(Utils.PURCHASE);
 								logger.fine("Confirming purchase of "+receivedBid.getItem() +" to "+msg.getSender().getLocalName());
 								items.remove(p.getItemID());
+								
+								//Removing myself from DF since i bought item
+								//throws a concurrency exception
+								//another thread probably using this
+								/*Iterator<ServiceDescription> it = dfd.getAllServices();
+								while(it.hasNext()) {
+									ServiceDescription sd = it.next();
+									if(sd.getName().equals(p.getItemID())) {
+										System.out.println("REMOVING SD " + sd.getName());
+										dfd.removeServices(sd);
+									}
+								}*/
 								
 								send(reply);
 								return;

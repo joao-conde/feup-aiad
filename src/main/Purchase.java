@@ -8,7 +8,7 @@ public class Purchase implements java.io.Serializable{
 	 * 
 	 */
 	private static final long serialVersionUID = 1L;
-	private String itemID; //item name
+	private String itemID;
 	private String sellerID;
 	private float rating;
 	
@@ -19,16 +19,9 @@ public class Purchase implements java.io.Serializable{
 	}
 	
 	private void computeRating(int realDeliveryTime, int expectedDeliveryTime, float value, float maxValue, float initVal) {
-		System.out.println("RealDelivery: " + realDeliveryTime);
-		System.out.println("Value: " + value);
-		System.out.println("MaxValue: " + maxValue);
-		System.out.println("initValue: " + initVal);
-		float timeRating = (float)(expectedDeliveryTime/(expectedDeliveryTime + realDeliveryTime)),
+		float timeRating = ((float)expectedDeliveryTime/((float)expectedDeliveryTime + (float)realDeliveryTime)),
 			  valueRating = (maxValue - value)/(maxValue - initVal);
-		
-		
-		//this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
-		this.rating = 1;
+		this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
 	}
 	
 	
