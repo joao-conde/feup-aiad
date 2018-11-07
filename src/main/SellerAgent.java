@@ -116,7 +116,7 @@ public class SellerAgent extends Agent {
 		@Override
 		protected void onTick() {
 			
-			// Update the list of seller agents
+			// Update the list of buyer agents
 			DFAgentDescription template = new DFAgentDescription();
 			ServiceDescription sd = new ServiceDescription();
 			sd.setType(Utils.SD_BUY);
@@ -296,9 +296,7 @@ public class SellerAgent extends Agent {
 					addBehaviour(new HandleInform());
 				} else {
 					System.err.println("Error checking ended auction status");
-				}
-				
-					
+				}	
 			}	
 			
 			private class HandleInform  extends CyclicBehaviour{

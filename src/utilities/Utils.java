@@ -12,14 +12,21 @@ import jade.util.Logger;
 
 public class Utils {
 	
+	
+	public static final String 
+			SD_BUY = "SD_BUY",
+			SD_SELL = "SD_SELL";
+	
 	public static final String 
 		PURCHASE = "PURCHASE",
-		CANCEL = "CANCEL",
-		SD_BUY = "SD_BUY",
-		SD_SELL = "SD_SELL",	
-		CFP_PROTOCOL = "FCFP",
 		WAIT = "WAIT",
+		CANCEL = "CANCEL";
+	
+	public static final String
+		CFP_PROTOCOL = "FCFP",
+		RATE = "RATE";
 		
+	public static final String
 		LOG_PATH = "logs/";
 		
 	public static float round(float number, int scale) {

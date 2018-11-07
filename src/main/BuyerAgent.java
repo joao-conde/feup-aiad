@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import main.Purchase;
 import utilities.Utils;
 
-import java.util.HashMap;
-import java.util.Iterator;
+import java.util.concurrent.ConcurrentHashMap;
 
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.domain.DFService;
@@ -30,11 +30,11 @@ public class BuyerAgent extends Agent{
 	private Logger logger;
 	private String agentName;
 	private DFAgentDescription dfd;
-	private HashMap<String,Float> items = new HashMap<String,Float>(); //itemID, maxValue
-	private HashMap<String,Integer> attempts = new HashMap<String,Integer>(); //itemID, attempts
-	private HashMap<String,Float> ratings = new HashMap<String,Float>(); //sellerID, averageRating
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>();
-	private HashMap<String, ArrayList<String>> liveAuctions = new HashMap<String,ArrayList<String>>(); //itemID, list of sellers
+	private ConcurrentHashMap<String,Float> items = new ConcurrentHashMap<String,Float>(); //itemID, maxValue
+	private ConcurrentHashMap<String,Integer> attempts = new ConcurrentHashMap<String,Integer>(); //itemID, attempts
+	protected ConcurrentHashMap<String,Float> ratings = new ConcurrentHashMap<String,Float>(); //sellerID, averageRating
+	private ConcurrentHashMap<String, ArrayList<String>> liveAuctions = new ConcurrentHashMap<String,ArrayList<String>>(); //itemID, list of sellers
 	
 	private float computeAverageRating(String sellerID) {
 		float sumRatings = 0, sellerPurchases = 0;
@@ -76,7 +76,7 @@ public class BuyerAgent extends Agent{
 	    }
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
-	    addBehaviour(new ConfirmationDispatcher(this,MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
+	    addBehaviour(new QueryDispatcher(this,MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -110,7 +110,7 @@ public class BuyerAgent extends Agent{
 			protected ACLMessage handleCfp(ACLMessage cfp) {
 				
 				ACLMessage reply = cfp.createReply();
-							
+						
 				try {
 					Bid receivedBid = (Bid) cfp.getContentObject();
 					
@@ -135,15 +135,39 @@ public class BuyerAgent extends Agent{
 							sellers.add(sellerID);
 							System.out.println(sellers);
 						}
+						
+						AID[] buyers = fetchOtherBuyers();
+						ACLMessage askRates = new ACLMessage(ACLMessage.QUERY_IF);
+						askRates.setContent(sellerID);
+						askRates.setProtocol(Utils.RATE);
+						
+						for(AID buyerAID: buyers) askRates.addReceiver(buyerAID);
+						//TODO
+						InformDispatcher idisp = new InformDispatcher(this.myAgent, MessageTemplate.MatchPerformative(ACLMessage.INFORM), buyers.length);
+						addBehaviour(idisp);
+						
+						send(askRates);
+						
+						Thread.sleep(3000);
+						/*
+						while(idisp.getMessages() != 0) {
+							//System.out.println(this.getAgent().getAID().getLocalName() + ": " + idisp.getMessages());
+							block();
+						}*/
+						
+						float opinion = idisp.getAverageRating();
+						if(ratings.containsKey(sellerID))
+							ratings.put(sellerID, (float)(0.3 * opinion + 0.7 * ratings.get(sellerID)));
+						else
+							ratings.put(sellerID, (float)(0.5*opinion + 0.5 * 0.8));
 					}
-					
 					
 					String lastBidderName=null;
 					reply.setPerformative(ACLMessage.PROPOSE);
 					
 					if((lastBidderName = receivedBid.getLastBidder()) != null) {
 						
-						//This agent is not the currrent winner
+						//This agent is not the current winner
 						logger.fine(agentName+": LastHighest was "+lastBidderName + " at " + receivedBid.getValue());
 						if(!lastBidderName.equals(agentName)) {
 							
@@ -176,16 +200,33 @@ public class BuyerAgent extends Agent{
 					reply.setContentObject(receivedBid);
 					logger.fine(agentName+": Propose to "+receivedBid.getItem()+" from "+ cfp.getSender().getLocalName() +" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
 					
-				} catch (UnreadableException | IOException e) {
+				} catch (UnreadableException | IOException | InterruptedException e) {
 					e.printStackTrace();
 				}
 				
 				return reply;
 			}
 			
-/*			protected void handleRejectProposal(ACLMessage cfp, ACLMessage propose, ACLMessage reject) {
-				logger.fine(myAgent.getLocalName() + " got a reject...");
-			}*/
+			protected AID[] fetchOtherBuyers() {
+				DFAgentDescription template = new DFAgentDescription();
+				ServiceDescription sd = new ServiceDescription();
+				sd.setType(Utils.SD_BUY);
+				template.addServices(sd);
+				
+				AID[] buyers = null;
+				try {
+					DFAgentDescription[] result = DFService.search(myAgent, template);
+					buyers = new AID[result.length];
+					for (int i = 0; i < result.length; ++i){
+						if(!result[i].getName().equals(this.getAgent().getAID()))
+							buyers[i] = result[i].getName();
+					}
+				} 
+				catch (FIPAException fe) {
+					fe.printStackTrace();
+				}
+				return buyers;
+			}
 
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				try {
@@ -221,48 +262,73 @@ public class BuyerAgent extends Agent{
 	
 				return null;
 			}
-			
+		
 		}
 
 	}
-	
-	private class ConfirmationDispatcher extends SSResponderDispatcher {
+		
+	private class QueryDispatcher extends SSResponderDispatcher {
 
 
 		private static final long serialVersionUID = 1L;
 
 
-		public ConfirmationDispatcher(Agent a, MessageTemplate tpl) {
+		public QueryDispatcher(Agent a, MessageTemplate tpl) {
 			super(a, tpl);
 		}
 
 
 		@Override
-		protected Behaviour createResponder(ACLMessage cfp) {
-			return new Confirmation(myAgent,cfp);
+		protected Behaviour createResponder(ACLMessage query) {
+			System.out.println("QUERY RESPONDER");
+			return new QueryHandler(myAgent, query);
 		}
 		
-	}
-	
-	
-	
-	public class Confirmation extends Behaviour {
+		
+		private class QueryHandler extends Behaviour {
 
-		private static final long serialVersionUID = 1L;
-		ACLMessage msg;
-		Boolean finished = false;
-		public Confirmation(Agent myAgent,ACLMessage msg) {
-			this.msg = msg;
-			this.myAgent = myAgent;
-		}
-		
-		@Override
-		public void action() {
+			private static final long serialVersionUID = 1L;
+			ACLMessage msg;
+			Boolean finished = false;
+			public QueryHandler(Agent myAgent, ACLMessage msg) {
+				this.msg = msg;
+				this.myAgent = myAgent;
+			}
+			
+			@Override
+			public void action() {
+				System.out.println("ACTION");
+					if(msg == null) return;
+					
+					
+					if(msg.getProtocol().equals(Utils.RATE))
+						handleRatingRequests();
+					else
+						handlePurchaseConfirmations();
+			}
+			
+			private void handleRatingRequests() {
+				System.out.println("HI FROM HANDLER");//TODO
+				ACLMessage reply = msg.createReply();
+				String content, sellerID = msg.getContent();
+				BuyerAgent parent = (BuyerAgent)this.myAgent;
 				
-				if(msg == null) {
-					System.out.println("Messagem null");
-					return;
+				reply.setPerformative(ACLMessage.INFORM);
+				reply.setProtocol(Utils.RATE);
+				
+				if(parent.ratings.contains(sellerID)) {
+					parent.computeAverageRating(sellerID);
+					content = parent.ratings.get(sellerID).toString();
 				}
+				else {
+					content = "NULL";
+				}
+				
+				reply.setContent(content);
+				send(reply);
+			}
+
+			public void handlePurchaseConfirmations() {
 				ACLMessage reply;
 				finished = true;
 				reply = this.msg.createReply();
@@ -317,16 +383,76 @@ public class BuyerAgent extends Agent{
 				}
 			  
 			
-			block(); //this block reduces CPU usage from 80% to 8% XD
+				block(); //this block reduces CPU usage from 80% to 8% XD
+			}
+
+			@Override
+			public boolean done() {
+				return this.finished;
+			}
+		}	
+		
+	}
+
+	private class InformDispatcher extends SSResponderDispatcher {
+		
+		protected int messages, elements;
+		protected float sum;
+		
+		public InformDispatcher(Agent a, MessageTemplate tpl, int informs) {
+			super(a, tpl);
+			messages = informs;
+			sum = 0;
+			elements = 0;
 		}
-
-
 
 		@Override
-		public boolean done() {
-			// TODO Auto-generated method stub
-			return this.finished;
+		protected Behaviour createResponder(ACLMessage inform) {
+			return new InformHandler(this, myAgent, inform);
 		}
-	}	
-	
+		
+		public int getMessages() {
+			return this.messages;
+		}
+		
+		public float getAverageRating() {
+			if(elements == 0)
+				return (float)0.8;
+			else
+				return (float)(sum/(float)elements);
+		}
+		
+		private class InformHandler extends Behaviour{
+			
+			private static final long serialVersionUID = 1L;
+			
+			ACLMessage msg;
+			boolean finished = false;
+			InformDispatcher parent;
+			
+			public InformHandler(InformDispatcher parent, Agent myAgent, ACLMessage inform) {
+				this.msg = inform;
+				this.myAgent = myAgent;
+				this.parent = parent;
+			}
+
+			@Override
+			public void action() {
+				String content = msg.getContent();
+				if(!content.equals("NULL")) {
+					sum += Float.parseFloat(content);
+					elements++;
+				}
+				parent.messages--;
+				finished = true;
+			}
+
+			@Override
+			public boolean done() {
+				return finished;
+			}
+			
+		}
+		
+	}
 }
