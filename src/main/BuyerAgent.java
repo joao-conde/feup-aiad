@@ -77,6 +77,7 @@ public class BuyerAgent extends Agent{
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	    addBehaviour(new QueryDispatcher(this,MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
+	    
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -149,7 +150,7 @@ public class BuyerAgent extends Agent{
 						System.out.println("MESSAGES: " + buyers.length);
 						send(askRates);
 						
-						Thread.sleep(3000);
+						Thread.sleep(1000);
 						/*
 						while(idisp.getMessages() != 0) {
 							//System.out.println(this.getAgent().getAID().getLocalName() + ": " + idisp.getMessages());
@@ -308,13 +309,18 @@ public class BuyerAgent extends Agent{
 			@Override
 			public void action() {
 				System.out.println("ACTION");
-					if(msg == null) return;
+					if(msg == null) {
+						System.out.println("null");
+						return;
+					}
 					
 					
-					if(msg.getProtocol().equals(Utils.RATE))
+					if(msg.getProtocol() == Utils.RATE.toString())
 						handleRatingRequests();
 					else
 						handlePurchaseConfirmations();
+					
+					
 			}
 			
 			private void handleRatingRequests() {
@@ -337,6 +343,7 @@ public class BuyerAgent extends Agent{
 				
 				reply.setContent(content);
 				send(reply);
+				finished=true;
 			}
 
 			public void handlePurchaseConfirmations() {
@@ -432,6 +439,9 @@ public class BuyerAgent extends Agent{
 			else
 				return (float)(sum/(float)elements);
 		}
+		public void decMessages() {
+			this.messages = messages -1;
+		}
 		
 		private class InformHandler extends Behaviour{
 			
@@ -449,6 +459,10 @@ public class BuyerAgent extends Agent{
 
 			@Override
 			public void action() {
+				if(getMessages() == 0) {
+					finished = true;
+					return;
+				}
 				
 				System.out.println("ReceivedInform Messages: " + parent.messages);
 				String content = msg.getContent();
@@ -456,7 +470,7 @@ public class BuyerAgent extends Agent{
 					sum += Float.parseFloat(content);
 					elements++;
 				}
-				parent.messages--;
+				decMessages();
 				finished = true;
 			}
 
