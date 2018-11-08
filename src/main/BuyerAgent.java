@@ -242,6 +242,13 @@ public class BuyerAgent extends Agent{
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
 				try {
 					Bid bid = (Bid)accept.getContentObject();
+					
+					ArrayList<String> sellers;
+					if((sellers = liveAuctions.get(bid.getItem())) != null) {
+						sellers.remove(sellers.indexOf(accept.getSender().getLocalName()));
+						System.out.println(liveAuctions.get(bid.getItem()));
+					}
+					
 					if(!items.containsKey(bid.getItem()))
 						return null;
 					System.out.println(items.containsKey(bid.getItem()));
@@ -261,11 +268,7 @@ public class BuyerAgent extends Agent{
 						}
 					}
 					purchases.add(purchase);
-					ArrayList<String> sellers;
-					if((sellers = liveAuctions.get(bid.getItem())) != null) {
-						sellers.remove(sellers.indexOf(accept.getSender().getLocalName()));
-						System.out.println(liveAuctions.get(bid.getItem()));
-					}
+					
 					
 				} catch (UnreadableException e) {
 					e.printStackTrace();
@@ -363,6 +366,7 @@ public class BuyerAgent extends Agent{
 						if((sellers = liveAuctions.get(receivedBid.getItem())) != null && !sellers.isEmpty()) {
 							finished = false;
 							reply.setContent(Utils.WAIT);
+							System.out.println("SENT WAIT");
 							send(reply);
 							return;
 						}
