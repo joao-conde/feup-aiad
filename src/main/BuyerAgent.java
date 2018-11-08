@@ -336,7 +336,7 @@ public class BuyerAgent extends Agent{
 		private int maxTickers;
 		private int currentTickers=0;
 		
-		public End(Agent a, long period, int maxTickers) {
+		public CheckEnd(Agent a, long period, int maxTickers) {
 			super(a, period);
 			this.maxTickers = maxTickers;
 		}
