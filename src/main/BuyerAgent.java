@@ -3,6 +3,7 @@ package main;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
+import java.util.Random;
 
 import main.Purchase;
 import utilities.Utils;
@@ -150,7 +151,8 @@ public class BuyerAgent extends Agent{
 						System.out.println("MESSAGES: " + buyers.length);
 						send(askRates);
 						
-						Thread.sleep(1000);
+						Random rand = new Random(System.currentTimeMillis());
+						Thread.sleep(rand.nextInt(3000));
 						/*
 						while(idisp.getMessages() != 0) {
 							//System.out.println(this.getAgent().getAID().getLocalName() + ": " + idisp.getMessages());
@@ -225,8 +227,6 @@ public class BuyerAgent extends Agent{
 						if(!result[i].getName().equals(this.getAgent().getAID())) {
 							buyers[a] = result[i].getName();
 							a++;
-						}else {
-							System.out.println("NAO");
 						}
 							
 						
@@ -308,7 +308,7 @@ public class BuyerAgent extends Agent{
 			
 			@Override
 			public void action() {
-				System.out.println("ACTION");
+				System.out.println("ACTION " + msg.getProtocol());
 					if(msg == null) {
 						System.out.println("null");
 						return;
@@ -320,7 +320,7 @@ public class BuyerAgent extends Agent{
 					else
 						handlePurchaseConfirmations();
 					
-					
+					//finished = true;
 			}
 			
 			private void handleRatingRequests() {
@@ -373,7 +373,7 @@ public class BuyerAgent extends Agent{
 								reply.setContent(Utils.PURCHASE);
 								logger.fine("Confirming purchase of "+receivedBid.getItem() +" to "+msg.getSender().getLocalName());
 								items.remove(p.getItemID());
-								
+								liveAuctions.remove(p.getItemID());
 								//Removing myself from DF since i bought item
 								//throws a concurrency exception
 								//another thread probably using this

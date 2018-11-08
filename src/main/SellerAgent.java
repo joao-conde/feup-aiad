@@ -306,6 +306,7 @@ public class SellerAgent extends Agent {
 					ACLMessage msg = receive(template);
 					if(msg != null) {
 							if(msg.getContent().equals(Utils.WAIT)) {
+								System.out.println(msg.getSender().getLocalName());
 								logger.fine("waiting for other auctions of the same product");
 								super.reset();
 							} else {
