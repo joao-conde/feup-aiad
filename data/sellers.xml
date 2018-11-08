@@ -1,0 +1,24 @@
+<market>
+    <seller name="Antonio" credibility="0">
+        <bid>
+            <item price="10.0">batatas</item>
+            <delivery>5</delivery>
+            <increase>0.5</increase>
+        </bid>
+        <bid>
+            <item price="12">bananas</item>
+            <delivery>6</delivery>
+            <increase>0.4</increase>
+        </bid>
+    </seller>
+
+    <seller name="HLC" credibility="0">
+        <bid>
+            <item price="9.0">batatas</item>
+            <delivery>6</delivery>
+            <increase>0.5</increase>
+        </bid>
+
+    </seller>
+
+</market>

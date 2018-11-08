@@ -9,9 +9,14 @@ import java.util.logging.SimpleFormatter;
 import java.util.logging.StreamHandler;
 
 import jade.util.Logger;
+import main.BuyerAgent;
 
 public class Utils {
 	
+	
+	public static final String
+			DEFAULT_BUYERS_PATH = "data/buyers.xml",
+			DEFAULT_SELLERS_PATH= "data/sellers.xml";
 	
 	public static final String 
 			SD_BUY = "SD_BUY",
@@ -70,6 +75,8 @@ public class Utils {
 	        }
 	    };
 	}
+	
+
 		
 }
 	
