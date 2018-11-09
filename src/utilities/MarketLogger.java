@@ -1,5 +1,6 @@
 package utilities;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Date;
 import java.util.logging.FileHandler;
@@ -17,6 +18,25 @@ public class MarketLogger {
 	
 	public static void setLogPath(String _logPath) {
 		logPath = DEFAULT_LOG_PATH + _logPath + '/';
+	}
+	
+	public static void calculateLogPath() {
+		File folder = new File(DEFAULT_LOG_PATH);
+		File[] listOfFiles = folder.listFiles();
+		Integer number = 0;
+		
+		for(File subfolder: listOfFiles) {
+			if(subfolder.isDirectory()) {
+				
+		        if(number < Integer.parseInt(subfolder.getName())) {
+		        	number = Integer.parseInt(subfolder.getName());
+		        }
+			}
+		}
+		
+		number++;
+		logPath = DEFAULT_LOG_PATH + number.toString() + '/';
+	
 	}
 
 	public static Logger createLogger(String className, String agentName) {

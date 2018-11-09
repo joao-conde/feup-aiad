@@ -146,7 +146,9 @@ public class BuyerAgent extends Agent{
 				super(a, cfp);
 			}
 			
-			
+			public void registerHandleCfp(Behaviour b) {
+				
+			}
 			
 			protected ACLMessage handleCfp(ACLMessage cfp) {
 				
@@ -403,18 +405,6 @@ public class BuyerAgent extends Agent{
 								sd.setName(p.getItemID());
 								dfd.removeServices(sd);
 								
-								
-								//Removing myself from DF since i bought item
-								//throws a concurrency exception
-								//another thread probably using this
-								/*Iterator<ServiceDescription> it = dfd.getAllServices();
-								while(it.hasNext()) {
-									ServiceDescription sd = it.next();
-									if(sd.getName().equals(p.getItemID())) {
-										System.out.println("REMOVING SD " + sd.getName());
-										dfd.removeServices(sd);
-									}
-								}*/
 								
 								send(reply);
 								return;
