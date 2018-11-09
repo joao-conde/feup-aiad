@@ -81,7 +81,7 @@ public class SellerAgent extends Agent {
 		@Override
 		public void action() {
 			if(bids.isEmpty()) {
-				logger.fine("No more items to sell!");
+				logger.fine(this.myAgent + " has no more items to sell");
 				finished = true;
 				return;
 			}
@@ -189,13 +189,13 @@ public class SellerAgent extends Agent {
 				Bid receivedBid;
 				try {
 					if(response.getPerformative() == ACLMessage.REFUSE) {
-						logger.fine(agentName+": Received REFUSE from "+response.getSender().getLocalName());
+						logger.fine(agentName + ": Received REFUSE from "+response.getSender().getLocalName());
 						continue;
 					
 					} else if(response.getPerformative() == ACLMessage.PROPOSE){
 						receivedBid = (Bid) response.getContentObject();
 						
-						logger.fine(agentName+": "+response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
+						logger.fine(agentName + ": " + response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
 						if(highestBid != null) {
 							if(receivedBid.getValue() > highestBid.getValue()) {
 								highestBid = receivedBid;
@@ -284,7 +284,6 @@ public class SellerAgent extends Agent {
 					ACLMessage message = new ACLMessage(ACLMessage.QUERY_IF);
 					message.setSender(getAID());
 					message.addReceiver(buyer);
-					System.out.println(agentName + " ASKING for "+highestBid.getItem()+ " to "+buyer.getLocalName());
 					
 					try {
 						message.setContentObject(highestBid);
@@ -292,7 +291,7 @@ public class SellerAgent extends Agent {
 						e.printStackTrace();
 					}
 					myAgent.send(message);					
-					logger.fine("Confirming purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
+					logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to " + highestBid.getLastBidder());
 					addBehaviour(new HandleInform());
 				} else {
 					System.err.println("Error checking ended auction status");
@@ -306,7 +305,6 @@ public class SellerAgent extends Agent {
 					ACLMessage msg = receive(template);
 					if(msg != null) {
 							if(msg.getContent().equals(Utils.WAIT)) {
-								System.out.println(msg.getSender().getLocalName());
 								logger.fine("waiting for other auctions of the same product");
 								super.reset();
 							} else {

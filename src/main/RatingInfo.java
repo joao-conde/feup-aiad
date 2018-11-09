@@ -24,7 +24,6 @@ public class RatingInfo {
 	}
 	
 	public void processRatingInfo(String rating) {
-		System.out.println("DENTRO DO PROCESSRATING");
 		if(!rating.equals(Utils.NULL)) {
 			totalValidAnswers++;
 			sumOfRatings += Float.parseFloat(rating);

@@ -3,7 +3,6 @@ package main;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
-import java.util.Random;
 
 import main.Purchase;
 import utilities.Utils;
@@ -13,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.SimpleBehaviour;
 import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
@@ -98,6 +98,41 @@ public class BuyerAgent extends Agent{
 			return new FIPAIteratedContractedNet(myAgent,cfp);
 		}
 		
+		private class WaitForRatings extends SimpleBehaviour{
+			
+			private String sellerID;
+			private boolean finished = false;
+			
+			public WaitForRatings(Agent a, String sellerID) {
+				super(a);
+				this.sellerID = sellerID;
+			}
+			
+			@Override
+			public void action() {
+				Float opinion;
+				if((opinion = awaitingRate.get(sellerID).calculateAverageRating()) == null) {
+					block();
+				}else {		
+					System.out.println("OPINION: " + opinion);
+					System.out.println("RATING ANTES DOS PEDIDOS " + ratings.get(sellerID));
+					if(opinion != -1) {						
+						if(ratings.containsKey(sellerID)) 
+							ratings.put(sellerID, (float)(0.3 * opinion + 0.7 * ratings.get(sellerID)));
+						else
+							ratings.put(sellerID, (float)(0.5 * opinion + 0.5 * 0.8));	
+					}
+					
+					System.out.println("RATING DEPOIS DOS PEDIDOS " + ratings.get(sellerID));
+					finished = true;
+				}
+			}
+			
+			public boolean done() {
+				return finished;
+			}
+
+		}
 		
 		private class FIPAIteratedContractedNet extends SSIteratedContractNetResponder {
 
@@ -136,7 +171,6 @@ public class BuyerAgent extends Agent{
 							liveAuctions.put(receivedBid.getItem(), sellers);
 						} else {
 							sellers.add(sellerID);
-							System.out.println(sellers);
 						}
 						
 						AID[] buyers = fetchOtherBuyers();
@@ -148,27 +182,12 @@ public class BuyerAgent extends Agent{
 						
 						awaitingRate.put(sellerID, new RatingInfo(buyers.length));
 						
+						addBehaviour(new WaitForRatings(this.myAgent, sellerID));
 						
-						System.out.println("MESSAGES: " + buyers.length);
-						send(askRates);
-						System.out.println("SENDING MESSAGES");
-						
-						//Random rand = new Random(System.currentTimeMillis());
-						//Thread.sleep(rand.nextInt(3000));
-						
-						//TODO: add cyclicbehaviour with block or tickerbehaviour
-						Float opinion;
-						while((opinion = awaitingRate.get(sellerID).calculateAverageRating()) == null) {
-							continue;
-						}
-						
-						if(ratings.containsKey(sellerID))
-							ratings.put(sellerID, (float)(0.3 * opinion + 0.7 * ratings.get(sellerID)));
-						else
-							ratings.put(sellerID, (float)(0.5 * opinion + 0.5 * 0.8));
+						send(askRates);					
 					}
 					
-					String lastBidderName=null;
+					String lastBidderName = null;
 					reply.setPerformative(ACLMessage.PROPOSE);
 					
 					if((lastBidderName = receivedBid.getLastBidder()) != null) {
@@ -223,7 +242,6 @@ public class BuyerAgent extends Agent{
 				try {
 					DFAgentDescription[] result = DFService.search(myAgent, template);
 					buyers = new AID[result.length-1];
-					System.out.println("LENGTH: " + buyers.length);
 					int a = 0;
 					for (int i = 0; i < result.length; ++i){
 						if(!result[i].getName().equals(this.getAgent().getAID())) {
@@ -247,17 +265,14 @@ public class BuyerAgent extends Agent{
 					ArrayList<String> sellers;
 					if((sellers = liveAuctions.get(bid.getItem())) != null) {
 						sellers.remove(sellers.indexOf(accept.getSender().getLocalName()));
-						System.out.println(liveAuctions.get(bid.getItem()));
 					}
 					
 					if(!items.containsKey(bid.getItem()))
 						return null;
-					System.out.println(items.containsKey(bid.getItem()));
 					Purchase purchase = new Purchase(bid, 
 							accept.getSender().getLocalName(), 
 							Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), 
 							items.get(bid.getItem()));
-					//computeAverageRating(accept.getSender().getLocalName());
 					System.out.println("--------------------->>>>>>CALCULATED RATING " + purchase.getRating());
 					for(Purchase p: purchases) {
 						if(p.getItemID().equals(purchase.getItemID())) {
@@ -295,7 +310,6 @@ public class BuyerAgent extends Agent{
 
 		@Override
 		protected Behaviour createResponder(ACLMessage query) {
-			System.out.println("QUERY RESPONDER");
 			return new QueryHandler(myAgent, query);
 		}
 		
@@ -312,12 +326,9 @@ public class BuyerAgent extends Agent{
 			
 			@Override
 			public void action() {
-				System.out.println("ACTION " + msg.getProtocol());
 					if(msg == null) {
-						System.out.println("null");
 						return;
 					}
-					
 					
 					if(msg.getProtocol() == Utils.RATE.toString())
 						handleRatingRequests();
@@ -329,7 +340,6 @@ public class BuyerAgent extends Agent{
 			
 			private void handleRatingRequests() {
 				
-				System.out.println("HI FROM HANDLER");//TODO
 				ACLMessage reply = msg.createReply();
 				String sellerID = msg.getContent();
 				SimpleEntry<String, String> content;
@@ -373,7 +383,6 @@ public class BuyerAgent extends Agent{
 						if((sellers = liveAuctions.get(receivedBid.getItem())) != null && !sellers.isEmpty()) {
 							finished = false;
 							reply.setContent(Utils.WAIT);
-							System.out.println("SENT WAIT");
 							send(reply);
 							return;
 						}
@@ -436,7 +445,6 @@ public class BuyerAgent extends Agent{
 
 		@Override
 		protected Behaviour createResponder(ACLMessage inform) {
-			System.out.println("CREATING INFORM HANDLER");
 			return new InformHandler(myAgent, inform);
 		}
 		
@@ -499,5 +507,3 @@ public class BuyerAgent extends Agent{
 	}
 
 }
-
-		

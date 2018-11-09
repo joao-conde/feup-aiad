@@ -16,7 +16,6 @@ import org.xml.sax.SAXException;
 
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
-import jade.tools.sniffer.ExitAction;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -73,34 +72,8 @@ public class Market {
 			}
 			
 		} catch (ParserConfigurationException | SAXException | IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		/*Object[] b1 = {new SimpleEntry<String,Float>("batatas",(float)15.0)},
-			     b2 = {new SimpleEntry<String,Float>("batatas", (float) 15.5),new SimpleEntry<String,Float>("bananas",(float)17)},
-			     b3 = {new SimpleEntry<String,Float>("batatas", (float) 17.00)};
-		
-		//create new buyer agents
-		AgentController buyer = this.mainContainer.createNewAgent("Carlos", "main.BuyerAgent", b1),
-						buyer2 = this.mainContainer.createNewAgent("Toy", "main.BuyerAgent", b2),
-						buyer3 = this.mainContainer.createNewAgent("buyerAgent3", "main.BuyerAgent", b3);
-		
-		//start new buyer agents 
-		buyer.start();
-		buyer2.start();
-		buyer3.start();
-		
-		Object[] s1 = {0, new Bid("batatas", (float)10.00, 5,(float)0.5),new Bid("bananas",(float)12,6,(float)0.4)},
-			  s2 = {0, new Bid("batatas",(float)9.00, 6,(float)0.5)};
-		
-		//create new seller agents
-		AgentController seller = this.mainContainer.createNewAgent("Antonio", "main.SellerAgent", s1),
-						seller2 = this.mainContainer.createNewAgent("HLC", "main.SellerAgent", s2);
-		
-		//start new sellers
-		seller.start();
-		seller2.start();*/
-
 	}
 	
 	public AgentController[] initializeBuyers(String filepath) throws ParserConfigurationException, SAXException, IOException, StaleProxyException {
@@ -115,9 +88,7 @@ public class Market {
 		
 		
 		doc.getDocumentElement().normalize();
-		
-		System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
-		
+				
 		NodeList buyers = doc.getElementsByTagName("buyer");
 		AgentController[] buyerAgents = new AgentController[buyers.getLength()];
 		for(int i = 0; i < buyers.getLength(); i++) {
@@ -154,7 +125,6 @@ public class Market {
 		Document doc = dBuilder.parse(xml);
 		
 		doc.getDocumentElement().normalize();
-		System.out.println("Root element :" + doc.getDocumentElement().getNodeName());
 		
 		NodeList sellers = doc.getElementsByTagName("seller");
 		AgentController[] sellerAgents = new AgentController[sellers.getLength()];
@@ -164,10 +134,10 @@ public class Market {
 			if(nseller.getNodeType() == Node.ELEMENT_NODE) {
 				Element seller = (Element) nseller;
 				String name = seller.getAttribute("name");
-				Integer credibility = Integer.parseInt(seller.getAttribute("credibility")); 
+				Integer shipmentDelay = Integer.parseInt(seller.getAttribute("shipmentDelay")); 
 				NodeList bids = seller.getElementsByTagName("bid");
 				Object[] bidsEntry = new Object[bids.getLength()+1];
-				bidsEntry[0] = credibility;
+				bidsEntry[0] = shipmentDelay;
 				for(int a=0; a < bids.getLength(); a++) {
 					Element nbid = (Element) bids.item(a);
 					Element item = (Element) nbid.getElementsByTagName("item").item(0);

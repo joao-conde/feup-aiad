@@ -1,18 +1,26 @@
 <?xml version = "1.0"?>
 
 <market>
+    <buyer name="Alberto">
+        <item maxvalue="15.0">a</item>
+    </buyer>
+
+    <buyer name="Bruno">
+        <item maxvalue="8">a</item>
+        <item maxvalue="30">b</item>
+    </buyer>
+
     <buyer name="Carlos">
-        <item maxvalue="15.0">batatas</item>
+        <item maxvalue="25">a</item>
+        <item maxvalue="25">b</item>
     </buyer>
-
-    <buyer name="Toy">
-        <item maxvalue="15.5">batatas</item>
-        <item maxvalue="17">bananas</item>
+    
+    <buyer name="Daniel">
+        <item maxvalue="35">c</item>
+        <item maxvalue="50">d</item>
     </buyer>
-
-    <buyer name="buyerAgent3">
-        <item maxvalue="17.00">batatas</item>
+    
+    <buyer name="Eusebio">
+        <item maxvalue="10">e</item>
     </buyer>
-
-   
 </market>
