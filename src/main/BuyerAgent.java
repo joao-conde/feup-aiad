@@ -13,6 +13,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -78,7 +79,7 @@ public class BuyerAgent extends Agent{
 	    
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	    addBehaviour(new QueryDispatcher(this,MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
-	    
+	    addBehaviour(new CheckEnd(this, 5000, 3));
 	}
 	
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -481,9 +482,33 @@ public class BuyerAgent extends Agent{
 			@Override
 			public boolean done() {
 				return finished;
+			}	
+
+		}
+	}
+
+	private class CheckEnd extends TickerBehaviour {
+
+		private int maxTickers;
+		private int currentTickers=0;
+		
+		public CheckEnd(Agent a, long period, int maxTickers) {
+			super(a, period);
+			this.maxTickers = maxTickers;
+		}
+
+		@Override
+		protected void onTick() {
+			currentTickers++;
+			if(items.isEmpty() || currentTickers > maxTickers) {
+				logger.fine("AGENT KILLED");
+				myAgent.doDelete();
 			}
 			
 		}
 		
 	}
+
 }
+
+		
