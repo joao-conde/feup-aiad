@@ -5,6 +5,7 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 
 import main.Purchase;
+import utilities.MarketLogger;
 import utilities.Utils;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -58,7 +59,7 @@ public class BuyerAgent extends Agent{
 		
 		agentName = this.getLocalName();
 		
-		logger = Utils.createLogger(this.getClass().getName(), agentName);
+		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
 		
 		for(Object arg: args) {
 			SimpleEntry<String,Float> argument = (SimpleEntry<String,Float>) arg;
@@ -114,8 +115,8 @@ public class BuyerAgent extends Agent{
 				if((opinion = awaitingRate.get(sellerID).calculateAverageRating()) == null) {
 					block();
 				}else {		
-					System.out.println("OPINION: " + opinion);
-					System.out.println("RATING ANTES DOS PEDIDOS " + ratings.get(sellerID));
+					//System.out.println("OPINION: " + opinion);
+					//System.out.println("RATING ANTES DOS PEDIDOS " + ratings.get(sellerID));
 					if(opinion != -1) {						
 						if(ratings.containsKey(sellerID)) 
 							ratings.put(sellerID, (float)(0.3 * opinion + 0.7 * ratings.get(sellerID)));
@@ -123,7 +124,7 @@ public class BuyerAgent extends Agent{
 							ratings.put(sellerID, (float)(0.5 * opinion + 0.5 * 0.8));	
 					}
 					
-					System.out.println("RATING DEPOIS DOS PEDIDOS " + ratings.get(sellerID));
+					//System.out.println("RATING DEPOIS DOS PEDIDOS " + ratings.get(sellerID));
 					finished = true;
 				}
 			}
@@ -273,7 +274,7 @@ public class BuyerAgent extends Agent{
 							accept.getSender().getLocalName(), 
 							Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), 
 							items.get(bid.getItem()));
-					System.out.println("--------------------->>>>>>CALCULATED RATING " + purchase.getRating());
+					//System.out.println("--------------------->>>>>>CALCULATED RATING " + purchase.getRating());
 					for(Purchase p: purchases) {
 						if(p.getItemID().equals(purchase.getItemID())) {
 							if(p.getRating() < purchase.getRating()) {

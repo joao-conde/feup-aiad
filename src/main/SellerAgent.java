@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.Vector;
-import java.util.logging.FileHandler;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -23,6 +22,7 @@ import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 import jade.util.Logger;
 import jade.wrapper.ControllerException;
+import utilities.MarketLogger;
 import utilities.Utils;
 
 public class SellerAgent extends Agent {
@@ -50,7 +50,7 @@ public class SellerAgent extends Agent {
 		
 		agentName = this.getLocalName();
 		
-		logger = Utils.createLogger(this.getClass().getName(), agentName);
+		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
 		
 		addBehaviour(new MainBehaviour(this));
 	}

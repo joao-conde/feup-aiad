@@ -19,6 +19,7 @@ import jade.core.Runtime;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
+import utilities.MarketLogger;
 import utilities.Utils;
 
 public class Market { 
@@ -37,7 +38,7 @@ public class Market {
 	
 	public Market(String buyersFile,String sellersFile) {
 		try {
-			new File(Utils.LOG_PATH).mkdirs();
+			new File(MarketLogger.LOG_PATH).mkdirs();
 			this.initializeContainers();
 			this.initializeAgents(buyersFile,sellersFile);
 		} catch (SecurityException | StaleProxyException e) {
