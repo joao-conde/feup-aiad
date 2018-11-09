@@ -41,7 +41,6 @@ public class MarketLogger {
 		
 		number++;
 		logPath = DEFAULT_LOG_PATH + number.toString() + '/';
-	
 	}
 
 	public static Logger createLogger(String className, String agentName) {
