@@ -146,6 +146,8 @@ public class BuyerAgent extends Agent{
 				super(a, cfp);
 			}
 			
+			
+			
 			protected ACLMessage handleCfp(ACLMessage cfp) {
 				
 				ACLMessage reply = cfp.createReply();
@@ -395,6 +397,13 @@ public class BuyerAgent extends Agent{
 								logger.fine("Confirming purchase of "+receivedBid.getItem() +" to "+msg.getSender().getLocalName());
 								items.remove(p.getItemID());
 								liveAuctions.remove(p.getItemID());
+								
+								ServiceDescription sd = new ServiceDescription();
+								sd.setType(Utils.SD_BUY);
+								sd.setName(p.getItemID());
+								dfd.removeServices(sd);
+								
+								
 								//Removing myself from DF since i bought item
 								//throws a concurrency exception
 								//another thread probably using this
