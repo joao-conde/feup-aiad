@@ -29,7 +29,8 @@ public class Utils {
 	
 	public static final String
 		CFP_PROTOCOL = "FCFP",
-		RATE = "RATE";
+		RATE = "RATE",
+		NULL = "NULL";
 		
 	public static final String
 		LOG_PATH = "logs/";

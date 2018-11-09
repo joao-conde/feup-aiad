@@ -34,9 +34,9 @@ public class BuyerAgent extends Agent{
 	private DFAgentDescription dfd;
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>();
 	private ConcurrentHashMap<String,Float> items = new ConcurrentHashMap<String,Float>(); //itemID, maxValue
-	private ConcurrentHashMap<String,Integer> attempts = new ConcurrentHashMap<String,Integer>(); //itemID, attempts
 	protected ConcurrentHashMap<String,Float> ratings = new ConcurrentHashMap<String,Float>(); //sellerID, averageRating
 	private ConcurrentHashMap<String, ArrayList<String>> liveAuctions = new ConcurrentHashMap<String,ArrayList<String>>(); //itemID, list of sellers
+	private ConcurrentHashMap<String, RatingInfo> awaitingRate = new ConcurrentHashMap<String, RatingInfo>(); //itemID, rating information object
 	
 	private float computeAverageRating(String sellerID) {
 		float sumRatings = 0, sellerPurchases = 0;
@@ -47,7 +47,6 @@ public class BuyerAgent extends Agent{
 				sumRatings += p.getRating();
 			}
 		}
-		
 		return (float) (sellerPurchases == 0 ? 0.8 : sumRatings/sellerPurchases);
 	}
 	
@@ -77,6 +76,7 @@ public class BuyerAgent extends Agent{
 	      fe.printStackTrace();
 	    }
 	    
+	    addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 	    addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 	    addBehaviour(new QueryDispatcher(this,MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
 	    addBehaviour(new CheckEnd(this, 5000, 3));
@@ -145,26 +145,27 @@ public class BuyerAgent extends Agent{
 						askRates.setProtocol(Utils.RATE);
 						
 						for(AID buyerAID: buyers) askRates.addReceiver(buyerAID);
-						//TODO
 						
-						InformDispatcher idisp = new InformDispatcher(this.myAgent, MessageTemplate.MatchPerformative(ACLMessage.INFORM), buyers.length);
-						addBehaviour(idisp);
+						awaitingRate.put(sellerID, new RatingInfo(buyers.length));
+						
+						
 						System.out.println("MESSAGES: " + buyers.length);
 						send(askRates);
+						System.out.println("SENDING MESSAGES");
 						
-						Random rand = new Random(System.currentTimeMillis());
-						Thread.sleep(rand.nextInt(3000));
-						/*
-						while(idisp.getMessages() != 0) {
-							//System.out.println(this.getAgent().getAID().getLocalName() + ": " + idisp.getMessages());
-							block();
-						}*/
+						//Random rand = new Random(System.currentTimeMillis());
+						//Thread.sleep(rand.nextInt(3000));
 						
-						float opinion = idisp.getAverageRating();
+						//TODO: add cyclicbehaviour with block or tickerbehaviour
+						Float opinion;
+						while((opinion = awaitingRate.get(sellerID).calculateAverageRating()) == null) {
+							continue;
+						}
+						
 						if(ratings.containsKey(sellerID))
 							ratings.put(sellerID, (float)(0.3 * opinion + 0.7 * ratings.get(sellerID)));
 						else
-							ratings.put(sellerID, (float)(0.5*opinion + 0.5 * 0.8));
+							ratings.put(sellerID, (float)(0.5 * opinion + 0.5 * 0.8));
 					}
 					
 					String lastBidderName=null;
@@ -205,7 +206,7 @@ public class BuyerAgent extends Agent{
 					reply.setContentObject(receivedBid);
 					logger.fine(agentName+": Propose to "+receivedBid.getItem()+" from "+ cfp.getSender().getLocalName() +" with "+reply.getPerformative()+" and value "+ receivedBid.getValue());
 					
-				} catch (UnreadableException | IOException | InterruptedException e) {
+				} catch (UnreadableException | IOException e) {
 					e.printStackTrace();
 				}
 				
@@ -229,8 +230,7 @@ public class BuyerAgent extends Agent{
 							buyers[a] = result[i].getName();
 							a++;
 						}
-							
-						
+
 					}
 					
 				} 
@@ -331,7 +331,9 @@ public class BuyerAgent extends Agent{
 				
 				System.out.println("HI FROM HANDLER");//TODO
 				ACLMessage reply = msg.createReply();
-				String content, sellerID = msg.getContent();
+				String sellerID = msg.getContent();
+				SimpleEntry<String, String> content;
+				
 				BuyerAgent parent = (BuyerAgent)this.myAgent;
 				
 				reply.setPerformative(ACLMessage.INFORM);
@@ -339,14 +341,18 @@ public class BuyerAgent extends Agent{
 				
 				if(parent.ratings.contains(sellerID)) {
 					parent.computeAverageRating(sellerID);
-					content = parent.ratings.get(sellerID).toString();
+					content = new SimpleEntry<String, String>(sellerID, ratings.get(sellerID).toString());
 				}
 				else {
-					content = "NULL";
+					content = new SimpleEntry<String, String>(sellerID, Utils.NULL);
 				}
 				
-				reply.setContent(content);
-				send(reply);
+				try {
+					reply.setContentObject(content);
+					send(reply);
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
 				finished=true;
 			}
 
@@ -419,34 +425,21 @@ public class BuyerAgent extends Agent{
 
 	private class InformDispatcher extends SSResponderDispatcher {
 		
-		protected int messages, elements;
-		protected float sum;
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		
-		public InformDispatcher(Agent a, MessageTemplate tpl, int informs) {
+		public InformDispatcher(Agent a, MessageTemplate tpl) {
 			super(a, tpl);
-			messages = informs;
-			sum = 0;
-			elements = 0;
 		}
 
 		@Override
 		protected Behaviour createResponder(ACLMessage inform) {
-			return new InformHandler(this, myAgent, inform);
+			System.out.println("CREATING INFORM HANDLER");
+			return new InformHandler(myAgent, inform);
 		}
 		
-		public int getMessages() {
-			return this.messages;
-		}
-		
-		public float getAverageRating() {
-			if(elements == 0)
-				return (float)0.8;
-			else
-				return (float)(sum/(float)elements);
-		}
-		public void decMessages() {
-			this.messages = messages -1;
-		}
 		
 		private class InformHandler extends Behaviour{
 			
@@ -454,28 +447,24 @@ public class BuyerAgent extends Agent{
 			
 			ACLMessage msg;
 			boolean finished = false;
-			InformDispatcher parent;
 			
-			public InformHandler(InformDispatcher parent, Agent myAgent, ACLMessage inform) {
+			public InformHandler(Agent myAgent, ACLMessage inform) {
 				this.msg = inform;
 				this.myAgent = myAgent;
-				this.parent = parent;
 			}
 
 			@Override
 			public void action() {
-				if(getMessages() == 0) {
-					finished = true;
-					return;
+				
+				try {
+					SimpleEntry<String, String> content = (SimpleEntry<String, String>)msg.getContentObject();
+					if(awaitingRate.containsKey(content.getKey())) {
+						awaitingRate.get(content.getKey()).processRatingInfo(content.getValue());
+					}
+				} catch (UnreadableException e) {
+					e.printStackTrace();
 				}
 				
-				System.out.println("ReceivedInform Messages: " + parent.messages);
-				String content = msg.getContent();
-				if(!content.equals("NULL")) {
-					sum += Float.parseFloat(content);
-					elements++;
-				}
-				decMessages();
 				finished = true;
 			}
 
