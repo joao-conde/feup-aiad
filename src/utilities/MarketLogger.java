@@ -25,6 +25,11 @@ public class MarketLogger {
 		File[] listOfFiles = folder.listFiles();
 		Integer number = 0;
 		
+		if(!folder.exists()) {
+			logPath = DEFAULT_LOG_PATH + "1/";
+			return;
+		}
+		
 		for(File subfolder: listOfFiles) {
 			if(subfolder.isDirectory()) {
 				
