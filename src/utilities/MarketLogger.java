@@ -12,14 +12,19 @@ import jade.util.Logger;
 
 public class MarketLogger {
 
-	public static final String LOG_PATH = "logs/";
+	public static final String DEFAULT_LOG_PATH = "logs/";
+	public static String logPath;
+	
+	public static void setLogPath(String _logPath) {
+		logPath = DEFAULT_LOG_PATH + _logPath + '/';
+	}
 
 	public static Logger createLogger(String className, String agentName) {
 		Logger logger = Logger.getJADELogger(className + '.' + agentName);
 		logger.setLevel(Logger.ALL);
 
 		try {
-			FileHandler fh = new FileHandler(LOG_PATH + agentName + ".log");
+			FileHandler fh = new FileHandler(logPath + agentName + ".log");
 			fh.setFormatter(messageFormatter());
 			logger.addHandler(fh);
 

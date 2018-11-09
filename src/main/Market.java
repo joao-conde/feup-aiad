@@ -28,17 +28,20 @@ public class Market {
 	private ContainerController mainContainer; //Main JADE container
 	 
 	public static void main(String[] args) {
-		if(args.length == 2) {
-			new Market(args[0],args[1]);
-		}else {
-			new Market(Utils.DEFAULT_BUYERS_PATH,Utils.DEFAULT_SELLERS_PATH);
+		if(args.length == 3) {
+			new Market(args[0], args[1], args[2]);
 		}
-		
+		else if(args.length == 1) {
+			new Market(args[0], Utils.DEFAULT_BUYERS_PATH, Utils.DEFAULT_SELLERS_PATH);
+		}
+		else
+			System.out.println("Please specify a valid log folder path name");		
 	}
 	
-	public Market(String buyersFile,String sellersFile) {
+	public Market(String logFolder, String buyersFile, String sellersFile) {
 		try {
-			new File(MarketLogger.LOG_PATH).mkdirs();
+			MarketLogger.setLogPath(logFolder);
+			new File(MarketLogger.logPath).mkdirs();
 			this.initializeContainers();
 			this.initializeAgents(buyersFile,sellersFile);
 		} catch (SecurityException | StaleProxyException e) {
