@@ -240,7 +240,7 @@ public class BuyerAgent extends Agent {
 						reply.setContentObject(receivedBid);
 						
 						logger.fine(agentName + " reply to " + receivedBid.getItem() + " from "
-								+ cfp.getSender().getLocalName() + " with " + reply.getPerformative(reply.getPerformative()) + " and value "
+								+ cfp.getSender().getLocalName() + " with " + ACLMessage.getPerformative(reply.getPerformative()) + " and value "
 								+ receivedBid.getValue());
 						
 						sendReply(reply);

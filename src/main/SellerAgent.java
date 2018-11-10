@@ -23,6 +23,7 @@ import jade.proto.ContractNetInitiator;
 import jade.util.Logger;
 import jade.wrapper.ControllerException;
 import utilities.MarketLogger;
+import utilities.SellerStatistics;
 import utilities.Utils;
 
 public class SellerAgent extends Agent {
@@ -30,6 +31,7 @@ public class SellerAgent extends Agent {
 
 	private static final long serialVersionUID = 7888357163660384182L;
 	private Logger logger;
+	private SellerStatistics statManager;
 	private ArrayList<Bid> bids = new ArrayList<Bid>();
 	private Integer extraDelay, currentBidIndex = 0;
 	private AID[] buyerAgentsToCurrentItem;
@@ -50,6 +52,7 @@ public class SellerAgent extends Agent {
 		
 		agentName = this.getLocalName();
 		
+		statManager = new SellerStatistics(agentName);
 		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
 		
 		addBehaviour(new MainBehaviour(this));
@@ -199,8 +202,10 @@ public class SellerAgent extends Agent {
 						continue;
 					
 					} else if(response.getPerformative() == ACLMessage.PROPOSE){
+
 						receivedBid = (Bid) response.getContentObject();
 						
+						statManager.incItemPropose(receivedBid.getItem());
 						logger.fine(agentName + ": " + response.getSender().getLocalName()+" proposes "+ receivedBid.getValue() + " to " + receivedBid.getItem());
 						if(highestBid != null) {
 							if(receivedBid.getValue() > highestBid.getValue()) {
@@ -309,6 +314,11 @@ public class SellerAgent extends Agent {
 			}	
 			
 			private class HandleInform  extends CyclicBehaviour{
+				/**
+				 * 
+				 */
+				private static final long serialVersionUID = 1L;
+
 				@Override
 				public void action() {
 					MessageTemplate template = MessageTemplate.MatchPerformative(ACLMessage.INFORM);    
@@ -319,6 +329,8 @@ public class SellerAgent extends Agent {
 								super.reset();
 							} else {
 								if(msg.getContent().equals(Utils.PURCHASE)) {
+									
+									statManager.addItemSell(highestBid);
 									logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
 									
 									if(!bids.isEmpty()) {
@@ -328,6 +340,7 @@ public class SellerAgent extends Agent {
 									}
 								}
 								else if(msg.getContent().equals(Utils.CANCEL)){
+									statManager.incPurchaseCancels();
 									logger.fine("Purchase of " + highestBid.getItem() + " canceled by buyer " + msg.getSender().getLocalName());
 									currentBidIndex++;
 									currentBidIndex %= bids.size();
@@ -349,6 +362,7 @@ public class SellerAgent extends Agent {
 					}
 					else {
 						logger.fine(myAgent.getLocalName() + " has nothing else to sell - TERMINATED");
+						statManager.logStatistics(logger);
 						myAgent.doDelete();
 					}
 					return 0;
