@@ -211,12 +211,6 @@ public class BuyerAgent extends Agent {
 
 						if ((lastBidderName = receivedBid.getLastBidder()) != null) {
 
-							// This agent is not the current winner
-							/*
-							 * logger.fine(agentName + " : LastHighest was " + lastBidderName + " at " +
-							 * receivedBid.getValue());
-							 */
-
 							if (!lastBidderName.equals(agentName)) {
 
 								if (receivedBid.getValue()
@@ -290,7 +284,7 @@ public class BuyerAgent extends Agent {
 								else
 									ratings.put(sellerID, (float) (0.5 * opinion + 0.5 * 0.8));
 								
-								log += "and took their rating into account";
+								log += " and took their rating into account";
 							}
 							else log += " but no one had a well-formed opinion";
 							
@@ -558,11 +552,14 @@ public class BuyerAgent extends Agent {
 		@Override
 		protected void onTick() {
 			ticksNoActivity++;
-			if (items.isEmpty() || ticksNoActivity > maxTickers) {
+			if(items.isEmpty()) {
+				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
+				myAgent.doDelete();
+			}
+			else if(ticksNoActivity > maxTickers) {
 				logger.fine(agentName + " has waited long enough. Exiting the market");
 				myAgent.doDelete();
 			}
-
 		}
 	}
 

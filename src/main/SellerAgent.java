@@ -309,11 +309,12 @@ public class SellerAgent extends Agent {
 					ACLMessage msg = receive(template);
 					if(msg != null) {
 							if(msg.getContent().equals(Utils.WAIT)) {
-								logger.fine("waiting for other auctions of the same product");
+								logger.fine("Waiting confirmation, requested by buyer " + msg.getSender().getLocalName());
 								super.reset();
 							} else {
 								if(msg.getContent().equals(Utils.PURCHASE)) {
 									logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
+									
 									if(!bids.isEmpty()) {
 										bids.remove(bids.get(currentBidIndex));
 										
@@ -321,7 +322,7 @@ public class SellerAgent extends Agent {
 									}
 								}
 								else if(msg.getContent().equals(Utils.CANCEL)){
-									logger.fine(msg.getSender().getLocalName() + " is a huuuuge fag");
+									logger.fine("Purchase of " + highestBid.getItem() + " canceled by buyer " + msg.getSender().getLocalName());
 									currentBidIndex++;
 									currentBidIndex %= bids.size();
 								}
@@ -338,7 +339,7 @@ public class SellerAgent extends Agent {
 					if(!bids.isEmpty()) {
 						this.myAgent.addBehaviour(new MainBehaviour(myAgent));
 						highestBid = null;
-						logger.fine("Moving to new acution");
+						logger.fine("Moving to new auction");
 					}
 					else {
 						logger.fine(myAgent.getLocalName() + " has nothing else to sell - TERMINATED");
