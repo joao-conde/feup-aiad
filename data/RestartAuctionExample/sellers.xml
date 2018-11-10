@@ -1,0 +1,24 @@
+<market>  
+    <seller name="Tomas" shipmentDelay="0">
+        <bid>
+            <item price="1">batatas</item>
+            <delivery>3</delivery>
+            <increase>0.6</increase>
+        </bid>
+    </seller>
+
+    <seller name="Rui" shipmentDelay="0">
+        <bid>
+            <item price="1">batatas</item>
+            <delivery>10</delivery>
+            <increase>0.8</increase>
+        </bid>
+
+        <bid>
+            <item price="5">bananas</item>
+            <delivery>2</delivery>
+            <increase>1</increase>
+        </bid>
+
+    </seller>
+</market>
