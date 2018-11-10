@@ -35,7 +35,7 @@ public class Market {
 			new Market(Utils.DEFAULT_BUYERS_PATH, Utils.DEFAULT_SELLERS_PATH);
 		}
 		else
-			System.out.println("Please specify a valid log folder path name");		
+			System.out.println("INVALID PROGRAM ARGUMENTS");		
 	}
 	
 	public Market(String buyersFile, String sellersFile) {
@@ -114,9 +114,6 @@ public class Market {
 		}
 		
 		return buyerAgents;
-		
-		
-		
 	}
 	
 	public AgentController[] initializeSellers(String filepath) throws ParserConfigurationException, SAXException, IOException, StaleProxyException {

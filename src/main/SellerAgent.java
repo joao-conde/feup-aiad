@@ -338,10 +338,10 @@ public class SellerAgent extends Agent {
 					if(!bids.isEmpty()) {
 						this.myAgent.addBehaviour(new MainBehaviour(myAgent));
 						highestBid = null;
-						logger.fine("RESTART/NEW AUCTION");
+						logger.fine("Moving to new acution");
 					}
 					else {
-						logger.fine("AGENT KILLED");
+						logger.fine(myAgent.getLocalName() + " has nothing else to sell - TERMINATED");
 						myAgent.doDelete();
 					}
 					return 0;

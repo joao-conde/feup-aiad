@@ -15,11 +15,6 @@ public class RatingInfo {
 	}
 	
 	public Float calculateAverageRating() {
-		System.out.println("------------AVERAGE-------------");
-		System.out.println("TOTAL WAITING: " + totalWaitingAnswers);
-		System.out.println("TOTAL VALID: " + totalValidAnswers);
-		System.out.println("SUM: " + sumOfRatings);
-		
 		if(totalWaitingAnswers != 0) 
 			return null;
 		else if(totalValidAnswers == 0)
