@@ -1,0 +1,16 @@
+<market>
+    <buyer name="Alberto">
+        <item maxvalue="15.0">batatas</item>
+    </buyer>
+
+    <buyer name="Bruno">
+        <item maxvalue="12.5">batatas</item>
+        <item maxvalue="17">bananas</item>
+    </buyer>
+
+    <buyer name="Carlos">
+        <item maxvalue="25">batatas</item>
+        <item maxvalue="15">bananas</item>
+    </buyer>
+    
+</market>

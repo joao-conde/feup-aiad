@@ -1,0 +1,21 @@
+<market>  
+    <seller name="Conde" shipmentDelay="0">
+        <bid>
+            <item price="12">Meias</item>
+            <delivery>1</delivery>
+            <increase>0.5</increase>
+        </bid>
+
+    </seller>
+
+     <seller name="Mano" shipmentDelay="0">
+
+        <bid>
+            <item price="11.0">Meias</item>
+            <delivery>3</delivery>
+            <increase>0.5</increase>
+        </bid>
+
+
+    </seller>
+</market>

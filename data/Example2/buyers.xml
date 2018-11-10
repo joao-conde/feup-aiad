@@ -1,0 +1,20 @@
+<market>
+
+    <buyer name="Miguel">
+        <item maxvalue="15">Meias</item>
+    </buyer>
+
+    <buyer name="Carlos">
+        <item maxvalue="14.5">Meias</item>
+    </buyer>
+
+    <buyer name="Luis">
+        <item maxvalue="12">Meias</item>
+        <item maxvalue="8">Cuecas</item>
+    </buyer>
+
+     <buyer name="Andre">
+        <item maxvalue="11">Cuecas</item>
+    </buyer>
+
+</market>

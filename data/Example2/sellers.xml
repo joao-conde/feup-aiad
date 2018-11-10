@@ -1,0 +1,32 @@
+<market>  
+    <seller name="Conde" shipmentDelay="10">
+        <bid>
+            <item price="10.0">Meias</item>
+            <delivery>3</delivery>
+            <increase>0.5</increase>
+        </bid>
+
+        <bid>
+            <item price="5.0">Cuecas</item>
+            <delivery>1</delivery>
+            <increase>0.8</increase>
+        </bid>
+
+    </seller>
+
+     <seller name="Mano" shipmentDelay="0">
+
+        <bid>
+            <item price="11.0">Meias</item>
+            <delivery>3</delivery>
+            <increase>0.5</increase>
+        </bid>
+
+        <bid>
+            <item price="6.0">Cuecas</item>
+            <delivery>1</delivery>
+            <increase>0.8</increase>
+        </bid>
+
+    </seller>
+</market>

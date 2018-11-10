@@ -1,0 +1,96 @@
+<market>  
+    <seller name="Conde" shipmentDelay="15">
+        <bid>
+            <item price="300">Guitarra</item>
+            <delivery>3</delivery>
+            <increase>25</increase>
+        </bid>
+        
+        <bid>
+            <item price="550.5">Violino</item>
+            <delivery>6</delivery>
+            <increase>75</increase>
+        </bid>
+        
+        <bid>
+            <item price="35.5">Flauta</item>
+            <delivery>6</delivery>
+            <increase>5.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="1250.25">Piano</item>
+            <delivery>3</delivery>
+            <increase>100</increase>
+        </bid>
+        
+        <bid>
+            <item price="2000">Banjo</item>
+            <delivery>4</delivery>
+            <increase>200</increase>
+        </bid>
+    </seller>
+    <seller name="Maria" shipmentDelay="8">
+        <bid>
+            <item price="300">Guitarra</item>
+            <delivery>3</delivery>
+            <increase>25</increase>
+        </bid>
+        
+        <bid>
+            <item price="550.5">Violino</item>
+            <delivery>6</delivery>
+            <increase>75</increase>
+        </bid>
+        
+        <bid>
+            <item price="35.5">Flauta</item>
+            <delivery>6</delivery>
+            <increase>5.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="1250.25">Piano</item>
+            <delivery>3</delivery>
+            <increase>100</increase>
+        </bid>
+        
+        <bid>
+            <item price="2000">Banjo</item>
+            <delivery>4</delivery>
+            <increase>200</increase>
+        </bid>
+    </seller>
+
+       <seller name="Beatriz" shipmentDelay="0">
+        <bid>
+            <item price="300">Guitarra</item>
+            <delivery>3</delivery>
+            <increase>25</increase>
+        </bid>
+        
+        <bid>
+            <item price="550.5">Violino</item>
+            <delivery>6</delivery>
+            <increase>50</increase>
+        </bid>
+        
+        <bid>
+            <item price="35.5">Flauta</item>
+            <delivery>6</delivery>
+            <increase>6</increase>
+        </bid>
+        
+        <bid>
+            <item price="1250.25">Piano</item>
+            <delivery>3</delivery>
+            <increase>100</increase>
+        </bid>
+        
+        <bid>
+            <item price="2000">Banjo</item>
+            <delivery>4</delivery>
+            <increase>200</increase>
+        </bid>
+    </seller>
+</market>
