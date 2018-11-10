@@ -280,6 +280,8 @@ public class SellerAgent extends Agent {
 		
 		
 		private Integer computeDelay(int min, int max) {
+			if(max == min)
+				return min;
 			Random r = new Random(System.currentTimeMillis());
 			return r.nextInt(max-min) + min;
 		}
