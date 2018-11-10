@@ -1,0 +1,43 @@
+<?xml version = "1.0"?>
+
+<market>
+    <buyer name="Alberto">
+        <item maxvalue="400">Guitarra</item>
+    </buyer>
+
+    <buyer name="Bruno">
+        <item maxvalue="555">Guitarra</item>
+        <item maxvalue="600">Violino</item>
+    </buyer>
+
+    <buyer name="Carlos">
+        <item maxvalue="555.5">Guitarra</item>
+        <item maxvalue="700">Violino</item>
+    </buyer>
+    
+    <buyer name="Daniel">
+        <item maxvalue="50">Flauta</item>
+        <item maxvalue="1750">Piano</item>
+    </buyer>
+    
+    <buyer name="Eusebio">
+        <item maxvalue="2600">Banjo</item>
+    </buyer>
+
+    <buyer name="Luis">
+        <item maxvalue="2550">Banjo</item>
+    </buyer>
+
+    <buyer name="Andre">
+        <item maxvalue="3000">Banjo</item>
+    </buyer>
+
+    <buyer name="Lito">
+        <item maxvalue="3000">Piano</item>
+    </buyer>
+
+
+    <buyer name="Joao">
+        <item maxvalue="40">Flauta</item>
+    </buyer>
+</market>

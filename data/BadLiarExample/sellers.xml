@@ -1,0 +1,65 @@
+<market>  
+    <seller name="Conde" shipmentDelay="15">
+        <bid>
+            <item price="10.0">a</item>
+            <delivery>3</delivery>
+            <increase>0.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="15.0">b</item>
+            <delivery>6</delivery>
+            <increase>0.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="20.0">c</item>
+            <delivery>6</delivery>
+            <increase>0.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="30.0">d</item>
+            <delivery>3</delivery>
+            <increase>0.1</increase>
+        </bid>
+        
+        <bid>
+            <item price="5.0">e</item>
+            <delivery>4</delivery>
+            <increase>0.5</increase>
+        </bid>
+    </seller>
+
+    <seller name="Manuel" shipmentDelay="0">
+        <bid>
+            <item price="10.0">a</item>
+            <delivery>3</delivery>
+            <increase>0.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="15.0">b</item>
+            <delivery>6</delivery>
+            <increase>0.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="20.0">c</item>
+            <delivery>6</delivery>
+            <increase>0.5</increase>
+        </bid>
+        
+        <bid>
+            <item price="30.0">d</item>
+            <delivery>3</delivery>
+            <increase>0.1</increase>
+        </bid>
+        
+        <bid>
+            <item price="5.0">e</item>
+            <delivery>4</delivery>
+            <increase>0.5</increase>
+        </bid>
+    </seller>
+</market>
