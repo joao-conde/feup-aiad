@@ -130,12 +130,18 @@ public class SellerAgent extends Agent {
 					buyerAgentsToCurrentItem[i] = result[i].getName();
 				}
 				
-				if(result.length <= 1 && attempts <= 2) {
+				if(result.length <= 1 && attempts < 2) {
 					attempts++;
 				}
-				else {
+				else if(result.length <= 1 && attempts == 2){
+					currentBidIndex++;
+					currentBidIndex %= bids.size();
+					this.reset();
+				}else {
 					this.stop();
 				}
+				
+				
 			} 
 			catch (FIPAException fe) {
 				fe.printStackTrace();
