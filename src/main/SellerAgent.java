@@ -21,7 +21,6 @@ import jade.lang.acl.MessageTemplate;
 import jade.lang.acl.UnreadableException;
 import jade.proto.ContractNetInitiator;
 import jade.util.Logger;
-import jade.wrapper.ControllerException;
 import utilities.MarketLogger;
 import utilities.SellerStatistics;
 import utilities.Utils;

@@ -3,7 +3,6 @@ package utilities;
 import java.util.ArrayList;
 import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
-
 import jade.util.Logger;
 import main.Bid;
 

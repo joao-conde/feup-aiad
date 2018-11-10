@@ -5,7 +5,9 @@ import java.util.AbstractMap.SimpleEntry;
 import java.util.ArrayList;
 
 import main.Purchase;
+import utilities.BuyerStatistics;
 import utilities.MarketLogger;
+import utilities.SellerStatistics;
 import utilities.Utils;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,6 +32,7 @@ public class BuyerAgent extends Agent {
 
 	private static final long serialVersionUID = 1L;
 	private int ticksNoActivity = 0;
+	private BuyerStatistics statManager;
 	private Logger logger;
 	private String agentName;
 	private DFAgentDescription dfd;
@@ -91,6 +94,8 @@ public class BuyerAgent extends Agent {
 			fe.printStackTrace();
 		}
 
+		statManager = new BuyerStatistics(agentName, items.size());
+		
 		addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 		addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 		addBehaviour(new QueryDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
@@ -243,6 +248,9 @@ public class BuyerAgent extends Agent {
 								+ cfp.getSender().getLocalName() + " with " + ACLMessage.getPerformative(reply.getPerformative()) + " and value "
 								+ receivedBid.getValue());
 						
+						if(reply.getPerformative() == ACLMessage.PROPOSE)
+							statManager.incItemAttempts(receivedBid.getItem(), cfp.getSender().getLocalName());
+						
 						sendReply(reply);
 					} catch (UnreadableException | IOException e) {
 						e.printStackTrace();
@@ -332,7 +340,9 @@ public class BuyerAgent extends Agent {
 					logger.fine(agentName + " received an ACCEPT_PROPOSAL on " + bid.getItem() + " from seller " + accept.getSender().getLocalName());
 
 					removeFromLiveAuctions(bid.getItem(), cfp.getSender().getLocalName());
-
+					
+					statManager.incItemAuctionsWon(bid.getItem());
+					
 					if (!items.containsKey(bid.getItem()))
 						return null;
 					
@@ -453,12 +463,13 @@ public class BuyerAgent extends Agent {
 										+ msg.getSender().getLocalName());
 								items.remove(p.getItemID());
 								liveAuctions.remove(p.getItemID());
-
+															
 								ServiceDescription sd = new ServiceDescription();
 								sd.setType(Utils.SD_BUY);
 								sd.setName(p.getItemID());
 								dfd.removeServices(sd);
-
+								
+								statManager.addPurchase(p);
 								send(reply);
 								return;
 							}
@@ -554,10 +565,12 @@ public class BuyerAgent extends Agent {
 			ticksNoActivity++;
 			if(items.isEmpty()) {
 				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
+				statManager.logStatistics(logger);
 				myAgent.doDelete();
 			}
 			else if(ticksNoActivity > maxTickers) {
 				logger.fine(agentName + " has waited long enough. Exiting the market");
+				statManager.logStatistics(logger);
 				myAgent.doDelete();
 			}
 		}
