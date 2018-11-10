@@ -240,9 +240,13 @@ public class SellerAgent extends Agent {
 				try {
 					bid = (Bid) winnerMessage.getContentObject();
 					winnerMessage.setPerformative(ACLMessage.ACCEPT_PROPOSAL);
-					winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime() + extraDelay)).toString());
 					
-					BidKeeper keeper = new BidKeeper(myAgent, 2);
+					if(extraDelay == 0)
+						winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(1, bid.getDeliveryTime())).toString());
+					else
+						winnerMessage.addUserDefinedParameter("DeliveryTime", (computeDelay(bid.getDeliveryTime(), bid.getDeliveryTime() + extraDelay)).toString());
+		
+					BidKeeper keeper = new BidKeeper(myAgent, 1000);
 					addBehaviour(keeper);
 				} 
 				catch (UnreadableException e) {

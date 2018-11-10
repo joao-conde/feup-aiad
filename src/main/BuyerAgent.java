@@ -29,6 +29,7 @@ import jade.util.Logger;
 public class BuyerAgent extends Agent {
 
 	private static final long serialVersionUID = 1L;
+	private int ticksNoActivity = 0;
 	private Logger logger;
 	private String agentName;
 	private DFAgentDescription dfd;
@@ -43,7 +44,13 @@ public class BuyerAgent extends Agent {
 	private ConcurrentHashMap<String, RatingInfo> awaitingRate = new ConcurrentHashMap<String, RatingInfo>(); // itemID,
 																												// rating
 																												// information
-																												// object
+	private void removeFromLiveAuctions(String itemID, String sender) {
+		ArrayList<String> sellers;
+		if ((sellers = liveAuctions.get(itemID)) != null) {
+			int index = sellers.indexOf(sender);
+			if(index != -1) sellers.remove(index);
+		}
+	}
 
 	private float computeAverageRating(String sellerID) {
 		float sumRatings = 0, sellerPurchases = 0;
@@ -85,7 +92,7 @@ public class BuyerAgent extends Agent {
 		addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 		addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 		addBehaviour(new QueryDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
-		addBehaviour(new CheckEnd(this, 5000, 3));
+		addBehaviour(new CheckEnd(this, 5000, 5));
 	}
 
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -101,40 +108,6 @@ public class BuyerAgent extends Agent {
 			return new FIPAIteratedContractedNet(myAgent, cfp);
 		}
 
-		private class WaitForRatings extends SimpleBehaviour {
-
-			private String sellerID;
-			private boolean finished = false;
-
-			public WaitForRatings(Agent a, String sellerID) {
-				super(a);
-				this.sellerID = sellerID;
-			}
-
-			@Override
-			public void action() {
-				Float opinion;
-				if ((opinion = awaitingRate.get(sellerID).calculateAverageRating()) == null) {
-					block();
-				} else {
-					// System.out.println("OPINION: " + opinion);
-					// System.out.println("RATING ANTES DOS PEDIDOS " + ratings.get(sellerID));
-					if (opinion != -1) {
-						if (ratings.containsKey(sellerID))
-							ratings.put(sellerID, (float) (0.3 * opinion + 0.7 * ratings.get(sellerID)));
-						else
-							ratings.put(sellerID, (float) (0.5 * opinion + 0.5 * 0.8));
-					}
-
-					// System.out.println("RATING DEPOIS DOS PEDIDOS " + ratings.get(sellerID));
-					finished = true;
-				}
-			}
-
-			public boolean done() {
-				return finished;
-			}
-		}
 
 		private class FIPAIteratedContractedNet extends SSIteratedContractNetResponder {
 
@@ -165,8 +138,13 @@ public class BuyerAgent extends Agent {
 				@Override
 				public void action() {
 					ACLMessage cfp = (ACLMessage) fipacn.getDataStore().get(CFP_KEY);
+					try {
+						System.out.println(((Bid)cfp.getContentObject()).getItem());
+					} catch (UnreadableException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 					handleCFP(cfp);
-					
 				}
 
 				@Override
@@ -175,16 +153,18 @@ public class BuyerAgent extends Agent {
 				}
 
 				private void handleCFP(ACLMessage cfp) {
-					ACLMessage reply = cfp.createReply();
 
+					Bid receivedBid;
 					try {
-						Bid receivedBid = (Bid) cfp.getContentObject();
+						receivedBid = (Bid) cfp.getContentObject();
+						
 
 						logger.fine(agentName + ": Received a CFP from " + cfp.getSender().getLocalName() + " to "
 								+ receivedBid.getItem());
 
 						if (!items.containsKey(receivedBid.getItem())) {
 							logger.fine("Not looking for item anymore");
+							ACLMessage reply = cfp.createReply();
 							reply.setPerformative(ACLMessage.REFUSE);
 							sendReply(reply);
 							return;
@@ -192,12 +172,15 @@ public class BuyerAgent extends Agent {
 
 						if (cfp.getProtocol() == Utils.CFP_PROTOCOL) {
 							logger.fine("CFP");
+							ticksNoActivity = 0;
 							String sellerID = cfp.getSender().getLocalName();
+							System.out.println("SELLERID LMAO: " + sellerID);
 							ratings.put(sellerID, computeAverageRating(sellerID));
-							logger.fine("First CFP, calculating average rating for seller " + sellerID);
+							//logger.fine("First CFP, calculating average rating for seller " + sellerID);
 							ArrayList<String> sellers;
 							if ((sellers = liveAuctions.get(receivedBid.getItem())) == null) {
 								sellers = new ArrayList<String>();
+								System.out.println("SELLER ID NOME "+ sellerID);
 								sellers.add(sellerID);
 								liveAuctions.put(receivedBid.getItem(), sellers);
 							} else {
@@ -212,16 +195,32 @@ public class BuyerAgent extends Agent {
 							for (AID buyerAID : buyers)
 								askRates.addReceiver(buyerAID);
 
-							awaitingRate.put(sellerID, new RatingInfo(buyers.length));
-
-							addBehaviour(new WaitForRatings(this.myAgent, sellerID));
-
 							send(askRates);
+							awaitingRate.put(sellerID, new RatingInfo(buyers.length));
+							cfp.setProtocol(null);
+							addBehaviour(new WaitForRatings(this.myAgent, cfp, sellerID));
 						}
+						else 
+							handleRegularCFP(cfp);
+					} catch (UnreadableException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
 
+				}
+				
+				private void handleRegularCFP(ACLMessage cfp) {
+					ACLMessage reply = cfp.createReply();
+					//reply.setProtocol(null);
+					Bid receivedBid;
+					try {
+						receivedBid = (Bid) cfp.getContentObject();
 						String lastBidderName = null;
 						reply.setPerformative(ACLMessage.PROPOSE);
-
+						
+						logger.fine(receivedBid.getItem() + " ITEM RATE OF SELLER "
+								+ ratings.get(cfp.getSender().getLocalName()));
+						
 						if ((lastBidderName = receivedBid.getLastBidder()) != null) {
 
 							// This agent is not the current winner
@@ -229,20 +228,15 @@ public class BuyerAgent extends Agent {
 									+ receivedBid.getValue());
 							if (!lastBidderName.equals(agentName)) {
 
-								logger.fine(receivedBid.getItem() + " ITEM RATE OF SELLER "
-										+ ratings.get(cfp.getSender().getLocalName()));
 								if (receivedBid.getValue()
 										+ receivedBid.getMinIncrease() <= items.get(receivedBid.getItem())
 												* ratings.get(cfp.getSender().getLocalName()))
 									receivedBid.setNewValue(
 											Utils.round(receivedBid.getValue() + receivedBid.getMinIncrease(), 3));
 								else {
-									logger.fine("REFUSE");
+									logger.fine("REFUSE in "+myAgent.getLocalName());
 									reply.setPerformative(ACLMessage.REFUSE);
-									ArrayList<String> sellers;
-									if ((sellers = liveAuctions.get(receivedBid.getItem())) != null) {
-										sellers.remove(sellers.indexOf(cfp.getSender().getLocalName()));
-									}
+									removeFromLiveAuctions(receivedBid.getItem(), cfp.getSender().getLocalName());
 
 								}
 							}
@@ -252,12 +246,9 @@ public class BuyerAgent extends Agent {
 							if (receivedBid.getValue() > items.get(receivedBid.getItem())
 									* ratings.get(cfp.getSender().getLocalName())) {
 								float value = ratings.get(cfp.getSender().getLocalName());
-								logger.fine("FIRST CFP REFUSE");
+								logger.fine("FIRST CFP REFUSE in " +myAgent.getLocalName());
 								reply.setPerformative(ACLMessage.REFUSE); // first value is already too high
-								ArrayList<String> sellers;
-								if ((sellers = liveAuctions.get(receivedBid.getItem())) != null) {
-									sellers.remove(sellers.indexOf(cfp.getSender().getLocalName()));
-								}
+								removeFromLiveAuctions(receivedBid.getItem(), cfp.getSender().getLocalName());
 							}
 						}
 						reply.setContentObject(receivedBid);
@@ -265,16 +256,54 @@ public class BuyerAgent extends Agent {
 								+ cfp.getSender().getLocalName() + " with " + reply.getPerformative() + " and value "
 								+ receivedBid.getValue());
 
+						sendReply(reply);
 					} catch (UnreadableException | IOException e) {
 						e.printStackTrace();
 					}
 
-					sendReply(reply);
 				}
 
-				private void sendReply(ACLMessage reply) { 
+				private void sendReply(ACLMessage reply) {
 					fipacn.getDataStore().put(fipacn.REPLY_KEY, reply);
 					finished = true;
+				}
+				
+				private class WaitForRatings extends SimpleBehaviour {
+
+					private String sellerID;
+					private boolean finished = false;
+					private ACLMessage cfp;
+
+					public WaitForRatings(Agent a, ACLMessage cfp, String sellerID) {
+						super(a);
+						this.sellerID = sellerID;
+						this.cfp = cfp;
+					}
+
+					@Override
+					public void action() {
+						Float opinion;
+						if ((opinion = awaitingRate.get(sellerID).calculateAverageRating()) == null) {
+							block();
+						} else {
+							System.out.println("OPINION: " + opinion);
+							System.out.println("RATING ANTES DOS PEDIDOS " + ratings.get(sellerID));
+							if (opinion != -1) {
+								if (ratings.containsKey(sellerID))
+									ratings.put(sellerID, (float) (0.3 * opinion + 0.7 * ratings.get(sellerID)));
+								else
+									ratings.put(sellerID, (float) (0.5 * opinion + 0.5 * 0.8));
+							}
+
+							System.out.println("RATING DEPOIS DOS PEDIDOS " + ratings.get(sellerID));
+							handleRegularCFP(cfp);
+							finished = true;
+						}
+					}
+
+					public boolean done() {
+						return finished;
+					}
 				}
 			}
 
@@ -307,10 +336,7 @@ public class BuyerAgent extends Agent {
 				try {
 					Bid bid = (Bid) accept.getContentObject();
 
-					ArrayList<String> sellers;
-					if ((sellers = liveAuctions.get(bid.getItem())) != null) {
-						sellers.remove(sellers.indexOf(accept.getSender().getLocalName()));
-					}
+					removeFromLiveAuctions(bid.getItem(), cfp.getSender().getLocalName());
 
 					if (!items.containsKey(bid.getItem()))
 						return null;
@@ -323,11 +349,13 @@ public class BuyerAgent extends Agent {
 							if (p.getRating() < purchase.getRating()) {
 								purchases.remove(p);
 								purchases.add(purchase);
+								System.out.println("ADDED P " + p);
 								return null;
 							}
 						}
 					}
 					purchases.add(purchase);
+					System.out.println("ADDED PURCHASE " + purchase.getSellerID() + purchase.getRating());
 
 				} catch (UnreadableException e) {
 					e.printStackTrace();
@@ -379,18 +407,15 @@ public class BuyerAgent extends Agent {
 			}
 
 			private void handleRatingRequests() {
-
 				ACLMessage reply = msg.createReply();
 				String sellerID = msg.getContent();
 				SimpleEntry<String, String> content;
-
-				BuyerAgent parent = (BuyerAgent) this.myAgent;
-
+		
 				reply.setPerformative(ACLMessage.INFORM);
 				reply.setProtocol(Utils.RATE);
-
-				if (parent.ratings.contains(sellerID)) {
-					parent.computeAverageRating(sellerID);
+				
+				if (ratings.containsKey(sellerID)) {
+					ratings.put(sellerID, computeAverageRating(sellerID));					
 					content = new SimpleEntry<String, String>(sellerID, ratings.get(sellerID).toString());
 				} else {
 					content = new SimpleEntry<String, String>(sellerID, Utils.NULL);
@@ -524,7 +549,6 @@ public class BuyerAgent extends Agent {
 		 */
 		private static final long serialVersionUID = 1L;
 		private int maxTickers;
-		private int currentTickers = 0;
 
 		public CheckEnd(Agent a, long period, int maxTickers) {
 			super(a, period);
@@ -533,14 +557,13 @@ public class BuyerAgent extends Agent {
 
 		@Override
 		protected void onTick() {
-			currentTickers++;
-			if (items.isEmpty() || currentTickers > maxTickers) {
+			ticksNoActivity++;
+			if (items.isEmpty() || ticksNoActivity > maxTickers) {
 				logger.fine("AGENT KILLED");
 				myAgent.doDelete();
 			}
 
 		}
-
 	}
 
 }
