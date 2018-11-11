@@ -12,22 +12,28 @@ public class Purchase implements java.io.Serializable{
 	private String sellerID;
 	private float rating;
 	private float extraPaid; //difference between base price and actually paid for the item
+	private float valuePaid;
 	
 	public Purchase(Bid bid, String sellerID, int realDeliveryTime, float maxValue) {
 		this.itemID = bid.getItem();
 		this.sellerID = sellerID;	
 		this.extraPaid = maxValue - bid.getValue();
+		this.valuePaid = bid.getValue();
 		computeRating(realDeliveryTime, bid.getDeliveryTime(), bid.getValue(), maxValue, bid.getInitialValue());
 	}
 	
 	private void computeRating(int realDeliveryTime, int expectedDeliveryTime, float value, float maxValue, float initVal) {
 		float timeRating = ((float)expectedDeliveryTime/((float)expectedDeliveryTime + (float)realDeliveryTime)),
 			  valueRating = (maxValue - value)/(maxValue - initVal);
-		this.rating = (float) (timeRating * 0.5 + valueRating * 0.5);
+		this.rating = (float) (timeRating * 0.9 + valueRating * 0.1);
 	}
 	
 	public float getExtraPaid() {
 		return this.extraPaid;
+	}
+	
+	public float getValuePaid() {
+		return valuePaid;
 	}
 	
 	public String getItemID() {

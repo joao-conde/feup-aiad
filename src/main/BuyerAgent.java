@@ -351,11 +351,18 @@ public class BuyerAgent extends Agent {
 
 					for (Purchase p : purchases) {
 						if (p.getItemID().equals(purchase.getItemID())) {
-							if (p.getRating() < purchase.getRating()) {
+							if(p.getValuePaid() == purchase.getValuePaid()) {
+								if (ratings.get(p.getSellerID()) < ratings.get(purchase.getSellerID())) {
+									purchases.remove(p);
+									purchases.add(purchase);
+									return null;
+								}
+							}else if(p.getValuePaid() > purchase.getValuePaid() ) {
 								purchases.remove(p);
 								purchases.add(purchase);
 								return null;
 							}
+							
 						}
 					}
 					purchases.add(purchase);
