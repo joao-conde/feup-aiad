@@ -1,65 +1,39 @@
 <market>  
     <seller name="Conde" shipmentDelay="15">
         <bid>
-            <item price="10.0">a</item>
+            <item price="150">Guitarra</item>
             <delivery>3</delivery>
-            <increase>0.5</increase>
+            <increase>25</increase>
         </bid>
         
         <bid>
-            <item price="15.0">b</item>
+            <item price="550.5">Violino</item>
             <delivery>6</delivery>
-            <increase>0.5</increase>
+            <increase>35</increase>
         </bid>
-        
-        <bid>
-            <item price="20.0">c</item>
-            <delivery>6</delivery>
-            <increase>0.5</increase>
-        </bid>
-        
-        <bid>
-            <item price="30.0">d</item>
-            <delivery>3</delivery>
-            <increase>0.1</increase>
-        </bid>
-        
-        <bid>
-            <item price="5.0">e</item>
-            <delivery>4</delivery>
-            <increase>0.5</increase>
-        </bid>
-    </seller>
 
-    <seller name="Manuel" shipmentDelay="0">
         <bid>
-            <item price="10.0">a</item>
-            <delivery>3</delivery>
-            <increase>0.5</increase>
-        </bid>
-        
-        <bid>
-            <item price="15.0">b</item>
+            <item price="35.5">Flauta</item>
             <delivery>6</delivery>
-            <increase>0.5</increase>
+            <increase>6</increase>
         </bid>
         
+    </seller>
+ 
+    <seller name="Beatriz" shipmentDelay="0">
         <bid>
-            <item price="20.0">c</item>
-            <delivery>6</delivery>
-            <increase>0.5</increase>
-        </bid>
-        
-        <bid>
-            <item price="30.0">d</item>
+            <item price="300">Guitarra</item>
             <delivery>3</delivery>
-            <increase>0.1</increase>
+            <increase>25</increase>
         </bid>
         
         <bid>
-            <item price="5.0">e</item>
-            <delivery>4</delivery>
-            <increase>0.5</increase>
+            <item price="550.5">Violino</item>
+            <delivery>6</delivery>
+            <increase>50</increase>
         </bid>
+        
+       
+        
     </seller>
 </market>

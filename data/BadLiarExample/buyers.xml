@@ -2,25 +2,24 @@
 
 <market>
     <buyer name="Alberto">
-        <item maxvalue="15.0">a</item>
+        <item maxvalue="400">Guitarra</item>
     </buyer>
 
     <buyer name="Bruno">
-        <item maxvalue="8">a</item>
-        <item maxvalue="30">b</item>
+        <item maxvalue="555">Guitarra</item>
+        <item maxvalue="1000">Violino</item>
     </buyer>
 
     <buyer name="Carlos">
-        <item maxvalue="25">a</item>
-        <item maxvalue="25">b</item>
+        <item maxvalue="555.5">Guitarra</item>
+        <item maxvalue="700">Violino</item>
     </buyer>
     
     <buyer name="Daniel">
-        <item maxvalue="35">c</item>
-        <item maxvalue="50">d</item>
+        <item maxvalue="50">Flauta</item>
     </buyer>
     
-    <buyer name="Eusebio">
-        <item maxvalue="10">e</item>
+    <buyer name="Joao">
+        <item maxvalue="40">Flauta</item>
     </buyer>
 </market>
