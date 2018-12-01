@@ -18,8 +18,9 @@ public class SimulatorAgent extends Agent{
 	
 	private class LaunchSimulationsBehaviour extends SimpleBehaviour{
 		
-		Boolean finished = false;
-		Integer simulations, currSimulation = 1;
+		private Boolean finished = false;
+		protected Integer simulations;
+		protected Simulation currentSimulation = null;
 		
 		public LaunchSimulationsBehaviour(Agent myAgent, Integer simulations) {
 			this.myAgent = myAgent;
@@ -28,10 +29,20 @@ public class SimulatorAgent extends Agent{
 		
 		@Override
 		public void action() {
-			System.out.println("Simulation No " + currSimulation);
 			
-			currSimulation++;
-			if(currSimulation > simulations) finished = true;
+			if(currentSimulation != null && !currentSimulation.finished)
+				return;
+			
+			if(simulations <= 0) {
+				finished = true;
+				System.out.println("No more simulations to run");
+				return;
+			}
+			
+			this.currentSimulation = new Simulation();
+			System.out.println("Launched simulaton nº " + simulations);
+			addBehaviour(currentSimulation);
+			simulations--;
 		}
 		
 		@Override
@@ -39,6 +50,26 @@ public class SimulatorAgent extends Agent{
 			return finished;
 		}
 		
+		private class Simulation extends SimpleBehaviour{
+			
+			public Boolean finished = false;
+
+			@Override
+			public void action() {
+				System.out.println("Running simulation untill all agents die");
+				//myAgent.getAgentState() ---> Deleted
+				finished = true;
+				System.out.println("Simulation over");
+			}
+			
+			@Override
+			public boolean done() {
+				return finished;
+			}
+		}
+		
 	}
+	
+	
 	
 }
