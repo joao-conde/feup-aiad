@@ -2,6 +2,7 @@ package main;
 
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
+import utilities.Utils;
 
 public class SimulatorAgent extends Agent{
 
@@ -40,7 +41,7 @@ public class SimulatorAgent extends Agent{
 			}
 			
 			this.currentSimulation = new Simulation();
-			System.out.println("Launched simulaton nº " + simulations);
+			System.out.println("Launched simulaton number " + simulations);
 			addBehaviour(currentSimulation);
 			simulations--;
 		}
@@ -53,13 +54,21 @@ public class SimulatorAgent extends Agent{
 		private class Simulation extends SimpleBehaviour{
 			
 			public Boolean finished = false;
+			public Boolean init = false;
+			public Market market = null;
 
 			@Override
 			public void action() {
-				System.out.println("Running simulation untill all agents die");
+				
+				
+				if(!init) {
+					System.out.println("Running simulation untill all agents die");
+					market = new Market();
+					this.init = true;
+				}
 				//myAgent.getAgentState() ---> Deleted
 				finished = true;
-				System.out.println("Simulation over");
+				//System.out.println("Simulation over");
 			}
 			
 			@Override

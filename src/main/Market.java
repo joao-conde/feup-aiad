@@ -14,6 +14,7 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
+import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
 import jade.wrapper.AgentController;
@@ -49,6 +50,26 @@ public class Market {
 		}	
 				
 	}
+	
+	public Market() {
+		MarketLogger.calculateLogPath();
+		new File(MarketLogger.logPath).mkdirs();
+		this.jadeRt = Runtime.instance();
+		Profile profile = new ProfileImpl();
+		profile.setParameter(Profile.CONTAINER_NAME, "MarketContainer");
+		profile.setParameter(Profile.MAIN_HOST, "localhost");
+		this.mainContainer = jadeRt.createAgentContainer(profile);
+		try {
+			this.initializeAgents(Utils.DEFAULT_BUYERS_PATH,Utils.DEFAULT_SELLERS_PATH);
+			//TODO
+			this.generateAgents();
+		} catch (StaleProxyException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+
 		
 	public void initializeContainers() {
 		this.jadeRt = Runtime.instance();
@@ -154,6 +175,41 @@ public class Market {
 		return sellerAgents;
 		
 	}
+	
+	
+	public void generateAgents() throws StaleProxyException {
+		
+	
+			AgentController[] buyers = generateBuyers();
+			AgentController[] sellers = generateSellers();
+			
+			if(buyers == null || sellers == null) {
+				System.out.println("There was a problem generating agents ...");
+				return;
+			}
+			
+			for(int i = 0; i < buyers.length; i++) {
+				buyers[i].start();
+			}
+			
+			for(int i = 0; i < sellers.length; i++) {
+				sellers[i].start();
+			}
+			
+		
+	}
+	
+	public AgentController[] generateBuyers() {
+		//TODO
+		return null;
+	}
+	
+	public AgentController[] generateSellers() {
+		//TODO 
+		return null;
+	}
+	
+	
 
 
 }
