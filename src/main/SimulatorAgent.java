@@ -2,7 +2,6 @@ package main;
 
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
-import utilities.Utils;
 
 public class SimulatorAgent extends Agent{
 
@@ -19,7 +18,10 @@ public class SimulatorAgent extends Agent{
 	
 	private class LaunchSimulationsBehaviour extends SimpleBehaviour{
 		
-		private Boolean finished = false;
+		/**
+		 * 
+		 */
+		private static final long serialVersionUID = 1L;
 		protected Integer simulations;
 		protected Simulation currentSimulation = null;
 		
@@ -35,8 +37,8 @@ public class SimulatorAgent extends Agent{
 				return;
 			
 			if(simulations <= 0) {
-				finished = true;
 				System.out.println("No more simulations to run");
+				System.exit(0);
 				return;
 			}
 			
@@ -46,35 +48,32 @@ public class SimulatorAgent extends Agent{
 			simulations--;
 		}
 		
-		@Override
-		public boolean done() {
-			return finished;
-		}
-		
 		private class Simulation extends SimpleBehaviour{
 			
+			/**
+			 * 
+			 */
+			private static final long serialVersionUID = 1L;
+			
 			public Boolean finished = false;
-			public Boolean init = false;
-			public Market market = null;
 
 			@Override
 			public void action() {
-				
-				
-				if(!init) {
-					System.out.println("Running simulation untill all agents die");
-					market = new Market();
-					this.init = true;
-				}
+				System.out.println("Running simulation untill all agents die");
 				//myAgent.getAgentState() ---> Deleted
 				finished = true;
-				//System.out.println("Simulation over");
+				System.out.println("Simulation over");
 			}
 			
 			@Override
 			public boolean done() {
 				return finished;
 			}
+		}
+
+		@Override
+		public boolean done() {
+			return false;
 		}
 		
 	}
