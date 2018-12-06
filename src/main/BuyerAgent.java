@@ -573,14 +573,42 @@ public class BuyerAgent extends Agent {
 			if(items.isEmpty()) {
 				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
 				statManager.logStatistics(logger);
+				informSimulatorAgent();
 				myAgent.doDelete();
 			}
 			else if(ticksNoActivity > maxTickers) {
 				logger.fine(agentName + " has waited long enough. Exiting the market");
 				statManager.logStatistics(logger);
+				informSimulatorAgent();
 				myAgent.doDelete();
 			}
 		}
 	}
+
+	protected void informSimulatorAgent() {
+		
+		DFAgentDescription template = new DFAgentDescription();
+		ServiceDescription sd = new ServiceDescription();
+		sd.setType(Utils.SIMULATOR_AGENT);
+		sd.setName("Simulator");
+		template.addServices(sd);
+
+		try {
+			DFAgentDescription[] result = DFService.search(this, template);
+			System.out.println("BUYER AGENT " + this.getLocalName() + result[0]);
+			
+			ACLMessage message = new ACLMessage(ACLMessage.INFORM);
+			message.setSender(getAID());
+			message.addReceiver(result[0].getName());
+			
+			this.send(message);					
+			System.out.println(this.getLocalName() + " sent inform to simulator agent");
+		} 
+		catch (FIPAException fe) {
+			fe.printStackTrace();
+		}
+
+	}
+
 
 }

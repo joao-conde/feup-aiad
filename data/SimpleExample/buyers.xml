@@ -1,0 +1,10 @@
+<?xml version = "1.0"?>
+
+<market>
+    <buyer name="Alberto">
+        <item maxvalue="15.0">a</item>
+    </buyer>
+    <buyer name="Carlos">
+        <item maxvalue="13.0">a</item>
+    </buyer>
+</market>

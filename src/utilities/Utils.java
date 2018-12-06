@@ -10,7 +10,7 @@ public class Utils {
 
 	public static final String DEFAULT_BUYERS_PATH = "data/buyers.xml", DEFAULT_SELLERS_PATH = "data/sellers.xml";
 
-	public static final String SD_BUY = "SD_BUY", SD_SELL = "SD_SELL";
+	public static final String SD_BUY = "SD_BUY", SD_SELL = "SD_SELL", SIMULATOR_AGENT = "SIMULATOR_AGENT";
 
 	public static final String PURCHASE = "PURCHASE", WAIT = "WAIT", CANCEL = "CANCEL";
 
