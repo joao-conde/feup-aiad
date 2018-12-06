@@ -97,6 +97,7 @@ public class SimulatorAgent extends Agent {
 			@Override
 			public void action() {
 				messagesReceived++;
+				System.out.println("Received Message: " + messagesReceived);
 				finished = true;
 			}
 
@@ -248,7 +249,6 @@ public class SimulatorAgent extends Agent {
 
 				for (int i = 0; i < sellers.length; i++) {
 					sellers[i].start();
-					System.out.println("lmao");
 					messagesToReceive++;
 				}
 

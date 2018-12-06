@@ -99,7 +99,7 @@ public class BuyerAgent extends Agent {
 		addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 		addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 		addBehaviour(new QueryDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
-		addBehaviour(new CheckEnd(this, 5000, 5));
+		addBehaviour(new CheckEnd(this, 2000, 3));
 	}
 
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -574,12 +574,22 @@ public class BuyerAgent extends Agent {
 				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
 				statManager.logStatistics(logger);
 				informSimulatorAgent();
+				try {
+					DFService.deregister(myAgent);
+				} catch (FIPAException e) {
+					e.printStackTrace();
+				}
 				myAgent.doDelete();
 			}
 			else if(ticksNoActivity > maxTickers) {
 				logger.fine(agentName + " has waited long enough. Exiting the market");
 				statManager.logStatistics(logger);
 				informSimulatorAgent();
+				try {
+					DFService.deregister(myAgent);
+				} catch (FIPAException e) {
+					e.printStackTrace();
+				}
 				myAgent.doDelete();
 			}
 		}
@@ -594,9 +604,7 @@ public class BuyerAgent extends Agent {
 		template.addServices(sd);
 
 		try {
-			DFAgentDescription[] result = DFService.search(this, template);
-			System.out.println("BUYER AGENT " + this.getLocalName() + result[0]);
-			
+			DFAgentDescription[] result = DFService.search(this, template);			
 			ACLMessage message = new ACLMessage(ACLMessage.INFORM);
 			message.setSender(getAID());
 			message.addReceiver(result[0].getName());
