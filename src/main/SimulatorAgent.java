@@ -29,6 +29,7 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 import jade.lang.acl.MessageTemplate;
+import jade.lang.acl.UnreadableException;
 import jade.proto.SSResponderDispatcher;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
@@ -98,6 +99,16 @@ public class SimulatorAgent extends Agent {
 			public void action() {
 				messagesReceived++;
 				System.out.println("Received Message: " + messagesReceived);
+				try {
+					if (msg.getContentObject() != null) {
+						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
+						for (Bid bid : itemsSold) {
+							System.out.println("Write to .csv: sold " + bid.getItem() + " for " + bid.getValue());
+						}
+					}
+				} catch (UnreadableException e) {
+					e.printStackTrace();
+				}
 				finished = true;
 			}
 
@@ -211,8 +222,9 @@ public class SimulatorAgent extends Agent {
 			public void action() {
 				// System.out.println("Running simulation untill all agents die");
 				finished = (messagesToReceive == messagesReceived);
-/*				System.out.println("Received " + messagesReceived);
-*/			}
+				/*
+				 * System.out.println("Received " + messagesReceived);
+				 */ }
 
 			@Override
 			public boolean done() {

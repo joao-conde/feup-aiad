@@ -35,6 +35,8 @@ public class SellerAgent extends Agent {
 	private AID[] buyerAgentsToCurrentItem;
 	private Bid highestBid = null;
 	private String agentName;
+	
+	private ArrayList<Bid> itemsSold = new ArrayList<Bid>();
 
 	public void setup() {
 
@@ -69,10 +71,12 @@ public class SellerAgent extends Agent {
 			ACLMessage message = new ACLMessage(ACLMessage.INFORM);
 			message.setSender(getAID());
 			message.addReceiver(result[0].getName());
+			
+			message.setContentObject(itemsSold);
 
 			this.send(message);
 			System.out.println(this.getLocalName() + " sent inform to simulator agent");
-		} catch (FIPAException fe) {
+		} catch (FIPAException | IOException fe) {
 			fe.printStackTrace();
 		}
 
@@ -347,7 +351,8 @@ public class SellerAgent extends Agent {
 						} else {
 							if (msg.getContent().equals(Utils.PURCHASE)) {
 
-								statManager.addItemSell(highestBid);
+								statManager.addItemSell(highestBid);//TODO comment all stats and loggers, possible decrease timers ---> faster run
+								itemsSold.add(highestBid);
 								logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
 
 								if (!bids.isEmpty()) {
