@@ -75,7 +75,6 @@ public class SellerAgent extends Agent {
 			message.setContentObject(itemsSold);
 
 			this.send(message);
-			System.out.println(this.getLocalName() + " sent inform to simulator agent");
 		} catch (FIPAException | IOException fe) {
 			fe.printStackTrace();
 		}
@@ -105,7 +104,7 @@ public class SellerAgent extends Agent {
 		@Override
 		public void action() {
 			if (bids.isEmpty()) {
-				logger.fine(this.myAgent + " has no more items to sell");
+				//logger.fine(this.myAgent + " has no more items to sell");
 				finished = true;
 				return;
 			}
@@ -198,44 +197,44 @@ public class SellerAgent extends Agent {
 			v.add(cfp);
 
 			// e.g. Seller2: started an auction of bananas
-			logger.fine("--------------AUCTION--------------");
-			logger.fine(agentName + " started an auction of " + bids.get(currentBidIndex).getItem());
+			/*logger.fine("--------------AUCTION--------------");
+			logger.fine(agentName + " started an auction of " + bids.get(currentBidIndex).getItem());*/
 
 			return v;
 		}
 
 		protected void handleAllResponses(Vector responses, Vector acceptances) {
 
-			logger.fine(agentName + " got " + responses.size() + " responses to " + bids.get(currentBidIndex).getItem()
+			/*logger.fine(agentName + " got " + responses.size() + " responses to " + bids.get(currentBidIndex).getItem()
 					+ " auction\n");
-			logger.fine("--------------New iteration--------------");
+			logger.fine("--------------New iteration--------------");*/
 			for (int i = 0; i < responses.size(); i++) {
 				ACLMessage response = ((ACLMessage) responses.get(i));
 				Bid receivedBid;
 				try {
 					if (response.getPerformative() == ACLMessage.REFUSE) {
-						logger.fine(agentName + ": Received REFUSE from " + response.getSender().getLocalName());
+						//logger.fine(agentName + ": Received REFUSE from " + response.getSender().getLocalName());
 						continue;
 
 					} else if (response.getPerformative() == ACLMessage.PROPOSE) {
 
 						receivedBid = (Bid) response.getContentObject();
 
-						statManager.incItemPropose(receivedBid.getItem());
+						/*statManager.incItemPropose(receivedBid.getItem());
 						logger.fine(agentName + ": " + response.getSender().getLocalName() + " proposes "
-								+ receivedBid.getValue() + " to " + receivedBid.getItem());
+								+ receivedBid.getValue() + " to " + receivedBid.getItem());*/
 						if (highestBid != null) {
 							if (receivedBid.getValue() > highestBid.getValue()) {
 								highestBid = receivedBid;
 								highestBid.setLastBidder(response.getSender().getLocalName());
-								logger.fine("HighestBidder: " + highestBid.getLastBidder() + " with value: "
-										+ highestBid.getValue());
+								/*logger.fine("HighestBidder: " + highestBid.getLastBidder() + " with value: "
+										+ highestBid.getValue());*/
 							}
 						} else {
 							highestBid = receivedBid;
 							highestBid.setLastBidder(response.getSender().getLocalName());
-							logger.fine("HighestBidder: " + highestBid.getLastBidder() + " with value: "
-									+ highestBid.getValue());
+							/*logger.fine("HighestBidder: " + highestBid.getLastBidder() + " with value: "
+									+ highestBid.getValue());*/
 						}
 					}
 
@@ -286,15 +285,15 @@ public class SellerAgent extends Agent {
 			} else if (acceptances.size() != 0) {
 				newIteration(acceptances);
 			} else {
-				logger.fine("No one bought, moving to next item");
+				//logger.fine("No one bought, moving to next item");
 				currentBidIndex++;
 				currentBidIndex %= bids.size();
 			}
 		}
 
 		protected void handleAllResultNotifications(Vector resultNotifications) {
-			logger.fine(agentName + " got " + resultNotifications.size() + " responses to "
-					+ bids.get(currentBidIndex).getItem() + " auction\n");
+			/*logger.fine(agentName + " got " + resultNotifications.size() + " responses to "
+					+ bids.get(currentBidIndex).getItem() + " auction\n");*/
 		}
 
 		private Integer computeDelay(int min, int max) {
@@ -326,8 +325,8 @@ public class SellerAgent extends Agent {
 						e.printStackTrace();
 					}
 					myAgent.send(message);
-					logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to "
-							+ highestBid.getLastBidder());
+					/*logger.fine("Trying to confirm purchase of " + highestBid.getItem() + " to "
+							+ highestBid.getLastBidder());*/
 					addBehaviour(new HandleInform());
 				} else {
 					System.err.println("Error checking ended auction status");
@@ -346,14 +345,14 @@ public class SellerAgent extends Agent {
 					ACLMessage msg = receive(template);
 					if (msg != null) {
 						if (msg.getContent().equals(Utils.WAIT)) {
-							logger.fine("Waiting confirmation, requested by buyer " + msg.getSender().getLocalName());
+							//logger.fine("Waiting confirmation, requested by buyer " + msg.getSender().getLocalName());
 							super.reset();
 						} else {
 							if (msg.getContent().equals(Utils.PURCHASE)) {
 
-								statManager.addItemSell(highestBid);//TODO comment all stats and loggers, possible decrease timers ---> faster run
 								itemsSold.add(highestBid);
-								logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
+								/*statManager.addItemSell(highestBid);//TODO comment all stats and loggers, possible decrease timers ---> faster run
+								logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());*/
 
 								if (!bids.isEmpty()) {
 									bids.remove(bids.get(currentBidIndex));
@@ -362,9 +361,9 @@ public class SellerAgent extends Agent {
 										currentBidIndex = bids.size() - 1;
 								}
 							} else if (msg.getContent().equals(Utils.CANCEL)) {
-								statManager.incPurchaseCancels();
+								/*statManager.incPurchaseCancels();
 								logger.fine("Purchase of " + highestBid.getItem() + " canceled by buyer "
-										+ msg.getSender().getLocalName());
+										+ msg.getSender().getLocalName());*/
 								currentBidIndex++;
 								currentBidIndex %= bids.size();
 							}
@@ -380,10 +379,10 @@ public class SellerAgent extends Agent {
 					if (!bids.isEmpty()) {
 						this.myAgent.addBehaviour(new MainBehaviour(myAgent));
 						highestBid = null;
-						logger.fine("Moving to new auction");
+						//logger.fine("Moving to new auction");
 					} else {
-						logger.fine(myAgent.getLocalName() + " has nothing else to sell - TERMINATED");
-						statManager.logStatistics(logger);
+						//logger.fine(myAgent.getLocalName() + " has nothing else to sell - TERMINATED");
+						//statManager.logStatistics(logger);
 						informSimulatorAgent();
 						myAgent.doDelete();
 					}

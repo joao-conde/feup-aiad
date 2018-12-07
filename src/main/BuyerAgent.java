@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import main.Purchase;
 import utilities.BuyerStatistics;
 import utilities.MarketLogger;
-import utilities.SellerStatistics;
 import utilities.Utils;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,7 +76,7 @@ public class BuyerAgent extends Agent {
 		agentName = this.getLocalName();
 
 		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
-		logger.fine(agentName + " is now active in the market");
+		//logger.fine(agentName + " is now active in the market");
 
 		for (Object arg : args) {
 			SimpleEntry<String, Float> argument = (SimpleEntry<String, Float>) arg;
@@ -158,11 +157,11 @@ public class BuyerAgent extends Agent {
 					try {
 						receivedBid = (Bid) cfp.getContentObject();
 
-						logger.fine(agentName + " received a CFP from " + cfp.getSender().getLocalName() + " to bid on "
-								+ receivedBid.getItem());
+						/*logger.fine(agentName + " received a CFP from " + cfp.getSender().getLocalName() + " to bid on "
+								+ receivedBid.getItem());*/
 
 						if (!items.containsKey(receivedBid.getItem())) {
-							logger.fine(agentName + " is not looking for " + receivedBid.getItem() + " anymore");
+							//logger.fine(agentName + " is not looking for " + receivedBid.getItem() + " anymore");
 							ACLMessage reply = cfp.createReply();
 							reply.setPerformative(ACLMessage.REFUSE);
 							sendReply(reply);
@@ -190,7 +189,7 @@ public class BuyerAgent extends Agent {
 							for (AID buyerAID : buyers)
 								askRates.addReceiver(buyerAID);
 							
-							logger.fine(agentName + " asking other buyers for their opinion on seller " + sellerID);
+							//logger.fine(agentName + " asking other buyers for their opinion on seller " + sellerID);
 							
 							send(askRates);
 							awaitingRate.put(sellerID, new RatingInfo(buyers.length));
@@ -212,7 +211,7 @@ public class BuyerAgent extends Agent {
 
 						reply.setPerformative(ACLMessage.PROPOSE);
 
-						logger.fine(agentName + " rates " + sellerID + " with " + ratings.get(sellerID));
+						//logger.fine(agentName + " rates " + sellerID + " with " + ratings.get(sellerID));
 
 						if ((lastBidderName = receivedBid.getLastBidder()) != null) {
 
@@ -223,10 +222,10 @@ public class BuyerAgent extends Agent {
 												* ratings.get(cfp.getSender().getLocalName())) {
 									receivedBid.setNewValue(
 											Utils.round(receivedBid.getValue() + receivedBid.getMinIncrease(), 3));
-									logger.fine(agentName + " will bid " + receivedBid.getValue() + " on "
-											+ receivedBid.getItem());
+									/*logger.fine(agentName + " will bid " + receivedBid.getValue() + " on "
+											+ receivedBid.getItem());*/
 								} else {
-									logger.fine(agentName + " is dropping out of " + receivedBid.getItem() + " auction");
+									//logger.fine(agentName + " is dropping out of " + receivedBid.getItem() + " auction");
 									reply.setPerformative(ACLMessage.REFUSE);
 									removeFromLiveAuctions(receivedBid.getItem(), cfp.getSender().getLocalName());
 								}
@@ -236,17 +235,17 @@ public class BuyerAgent extends Agent {
 							// first bid (cfp call)
 							if (receivedBid.getValue() > items.get(receivedBid.getItem())
 									* ratings.get(cfp.getSender().getLocalName())) {
-								logger.fine(agentName + " will not even begin to bid on auction " + receivedBid.getItem()
-										+ " because price is too high already");
+								/*logger.fine(agentName + " will not even begin to bid on auction " + receivedBid.getItem()
+										+ " because price is too high already");*/
 								reply.setPerformative(ACLMessage.REFUSE); // first value is already too high
 								removeFromLiveAuctions(receivedBid.getItem(), cfp.getSender().getLocalName());
 							}
 						}
 						reply.setContentObject(receivedBid);
 						
-						logger.fine(agentName + " reply to " + receivedBid.getItem() + " from "
+						/*logger.fine(agentName + " reply to " + receivedBid.getItem() + " from "
 								+ cfp.getSender().getLocalName() + " with " + ACLMessage.getPerformative(reply.getPerformative()) + " and value "
-								+ receivedBid.getValue());
+								+ receivedBid.getValue());*/
 						
 						if(reply.getPerformative() == ACLMessage.PROPOSE)
 							statManager.incItemAttempts(receivedBid.getItem(), cfp.getSender().getLocalName());
@@ -296,7 +295,7 @@ public class BuyerAgent extends Agent {
 							}
 							else log += " but no one had a well-formed opinion";
 							
-							logger.fine(log);
+							//logger.fine(log);
 							handleRegularCFP(cfp);
 							finished = true;
 						}
@@ -337,7 +336,7 @@ public class BuyerAgent extends Agent {
 				
 				try {
 					Bid bid = (Bid) accept.getContentObject();
-					logger.fine(agentName + " received an ACCEPT_PROPOSAL on " + bid.getItem() + " from seller " + accept.getSender().getLocalName());
+					//logger.fine(agentName + " received an ACCEPT_PROPOSAL on " + bid.getItem() + " from seller " + accept.getSender().getLocalName());
 
 					removeFromLiveAuctions(bid.getItem(), cfp.getSender().getLocalName());
 					
@@ -419,8 +418,8 @@ public class BuyerAgent extends Agent {
 				String sellerID = msg.getContent();
 				SimpleEntry<String, String> content;
 
-				logger.fine(agentName + " received a request for his opinion on seller " + sellerID 
-						+ " by buyer " + msg.getSender().getLocalName()); 
+				/*logger.fine(agentName + " received a request for his opinion on seller " + sellerID 
+						+ " by buyer " + msg.getSender().getLocalName()); */
 				
 				reply.setPerformative(ACLMessage.INFORM);
 				reply.setProtocol(Utils.RATE);
@@ -450,8 +449,8 @@ public class BuyerAgent extends Agent {
 				try {
 					Bid receivedBid = (Bid) msg.getContentObject();
 					if (!items.containsKey(receivedBid.getItem())) {
-						logger.fine("Canceling purchase of " + receivedBid.getItem() + " to seller"
-								+ msg.getSender().getLocalName());
+						/*logger.fine("Canceling purchase of " + receivedBid.getItem() + " to seller"
+								+ msg.getSender().getLocalName());*/
 						reply.setContent(Utils.CANCEL);
 					} else {
 						ArrayList<String> sellers;
@@ -466,8 +465,8 @@ public class BuyerAgent extends Agent {
 							if (p.getItemID().equals(receivedBid.getItem())
 									&& p.getSellerID().equals(msg.getSender().getLocalName())) {
 								reply.setContent(Utils.PURCHASE);
-								logger.fine("Confirming purchase of " + receivedBid.getItem() + " to seller"
-										+ msg.getSender().getLocalName());
+								/*logger.fine("Confirming purchase of " + receivedBid.getItem() + " to seller"
+										+ msg.getSender().getLocalName());*/
 								items.remove(p.getItemID());
 								liveAuctions.remove(p.getItemID());
 															
@@ -481,8 +480,8 @@ public class BuyerAgent extends Agent {
 								return;
 							}
 						}
-						logger.fine("Canceling purchase of " + receivedBid.getItem() + " to seller"
-								+ msg.getSender().getLocalName());
+						/*logger.fine("Canceling purchase of " + receivedBid.getItem() + " to seller"
+								+ msg.getSender().getLocalName());*/
 						reply.setContent(Utils.CANCEL);
 
 					}
@@ -571,8 +570,8 @@ public class BuyerAgent extends Agent {
 		protected void onTick() {
 			ticksNoActivity++;
 			if(items.isEmpty()) {
-				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
-				statManager.logStatistics(logger);
+				/*logger.fine(agentName + " has bought everything he wanted. Exiting the market");
+				statManager.logStatistics(logger);*/
 				informSimulatorAgent();
 				try {
 					DFService.deregister(myAgent);
@@ -582,8 +581,8 @@ public class BuyerAgent extends Agent {
 				myAgent.doDelete();
 			}
 			else if(ticksNoActivity > maxTickers) {
-				logger.fine(agentName + " has waited long enough. Exiting the market");
-				statManager.logStatistics(logger);
+				/*logger.fine(agentName + " has waited long enough. Exiting the market");
+				statManager.logStatistics(logger);*/
 				informSimulatorAgent();
 				try {
 					DFService.deregister(myAgent);
@@ -610,7 +609,6 @@ public class BuyerAgent extends Agent {
 			message.addReceiver(result[0].getName());
 			
 			this.send(message);					
-			System.out.println(this.getLocalName() + " sent inform to simulator agent");
 		} 
 		catch (FIPAException fe) {
 			fe.printStackTrace();

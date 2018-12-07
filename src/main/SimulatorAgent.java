@@ -59,7 +59,6 @@ public class SimulatorAgent extends Agent {
 
 		try {
 			DFService.register(this, dfd);
-			System.out.println("Registed simulator agent");
 		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
@@ -160,6 +159,12 @@ public class SimulatorAgent extends Agent {
 		@Override
 		public boolean done() {
 			return finished;
+		}
+		
+		@Override
+		public int onEnd() {
+			System.exit(0);
+			return simulations;
 		}
 
 		private void createItems() {
