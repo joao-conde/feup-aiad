@@ -52,7 +52,7 @@ public class SellerAgent extends Agent {
 		agentName = this.getLocalName();
 
 		statManager = new SellerStatistics(agentName);
-		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
+		//logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
 
 		addBehaviour(new MainBehaviour(this));
 	}

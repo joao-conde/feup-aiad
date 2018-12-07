@@ -4,6 +4,7 @@ import java.io.File;
 
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
+import jade.util.Logger;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
@@ -28,8 +29,8 @@ public class DataGenerator {
 	
 	public DataGenerator(Integer simulations) {
 		try {
-			MarketLogger.calculateLogPath();
-			new File(MarketLogger.logPath).mkdirs();
+			/*MarketLogger.calculateLogPath();
+			new File(MarketLogger.logPath).mkdirs();*/
 			this.initializeContainers();
 			this.initializeSimulatorAgent(simulations);
 		} catch (SecurityException | StaleProxyException e) {

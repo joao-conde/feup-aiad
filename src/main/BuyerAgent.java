@@ -75,7 +75,7 @@ public class BuyerAgent extends Agent {
 
 		agentName = this.getLocalName();
 
-		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
+		//logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
 		//logger.fine(agentName + " is now active in the market");
 
 		for (Object arg : args) {

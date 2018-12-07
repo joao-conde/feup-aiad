@@ -97,7 +97,6 @@ public class SimulatorAgent extends Agent {
 			@Override
 			public void action() {
 				messagesReceived++;
-				System.out.println("Received Message: " + messagesReceived);
 				try {
 					if (msg.getContentObject() != null) {
 						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
@@ -136,6 +135,10 @@ public class SimulatorAgent extends Agent {
 			this.simulations = simulations;
 			this.jadeRt = Runtime.instance();
 			this.createItems();
+			// ensure log folder exist if logs uncommented in agents
+			/*
+			 * MarketLogger.calculateLogPath(); new File(MarketLogger.logPath).mkdirs();
+			 */
 		}
 
 		@Override
@@ -150,8 +153,8 @@ public class SimulatorAgent extends Agent {
 				return;
 			}
 
-			this.currentSimulation = new Simulation();
-			System.out.println("Running simulaton n." + simulations + "...");
+			this.currentSimulation = new Simulation(simulations);
+			System.out.println("Running simulaton nº" + simulations + "...");
 			addBehaviour(currentSimulation);
 			simulations--;
 		}
@@ -204,18 +207,17 @@ public class SimulatorAgent extends Agent {
 			private static final long serialVersionUID = 1L;
 
 			private ContainerController container;
+			private Integer simulationNumber;
 			public Boolean finished = false;
 
-			public Simulation() {
+			public Simulation(Integer simulationNo) {
 				messagesToReceive = 0;
 				messagesReceived = 0;
+				simulationNumber = simulationNo;
 				try {
-					MarketLogger.calculateLogPath();
-					new File(MarketLogger.logPath).mkdirs();
-
+					this.createCsvPath();
 					this.createContainer();
 					this.generateAgents();
-
 				} catch (SecurityException | StaleProxyException | ParserConfigurationException | SAXException
 						| IOException e) {
 					e.printStackTrace();
@@ -225,15 +227,23 @@ public class SimulatorAgent extends Agent {
 
 			@Override
 			public void action() {
-				// System.out.println("Running simulation untill all agents die");
 				finished = (messagesToReceive == messagesReceived);
-				/*
-				 * System.out.println("Received " + messagesReceived);
-				 */ }
+			}
+
+			@Override
+			public int onEnd() {
+				System.out.println("Simulation finished successfully\n");
+				return 0;
+			}
 
 			@Override
 			public boolean done() {
 				return finished;
+			}
+
+			public void createCsvPath() {
+				String csvPath = "simulations/" + simulationNumber + "/";
+				new File(csvPath).mkdirs();
 			}
 
 			public void createContainer() {
@@ -247,8 +257,8 @@ public class SimulatorAgent extends Agent {
 					throws StaleProxyException, ParserConfigurationException, SAXException, IOException {
 
 				/*
-				 * AgentController[] buyers = generateBuyers(); AgentController[] sellers =
-				 * generateSellers();
+				 * TODO uncomment to make it generate randomly AgentController[] buyers =
+				 * generateBuyers(); AgentController[] sellers = generateSellers();
 				 */
 
 				AgentController[] buyers = this.initializeBuyers("./data/SimpleExample/buyers.xml");
