@@ -17,6 +17,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Random;
 
 import jade.core.Agent;
@@ -46,7 +47,7 @@ public class SimulatorAgent extends Agent {
 	private static final long serialVersionUID = 1L;
 
 	private Integer messagesToReceive, messagesReceived = 0;
-	private ArrayList<Bid> itemsSold = null;
+	private HashMap<String, Integer> itemsSold = new HashMap<String, Integer>();
 
 	protected void setup() {
 		Object[] args = this.getArguments();
@@ -101,10 +102,12 @@ public class SimulatorAgent extends Agent {
 				messagesReceived++;
 				try {
 					if (msg.getContentObject() != null) {
-						itemsSold = ((ArrayList<Bid>) msg.getContentObject());
-						for (Bid bid : itemsSold) {
-							System.out.println("Write to .csv: sold " + bid.getItem() + " for " + bid.getValue());
-						}
+						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
+
+						/*
+						 * for(Bid item: itemsSold) { TODO: associate for each of the table entrys if
+						 * product was sold or not }
+						 */
 					}
 				} catch (UnreadableException e) {
 					e.printStackTrace();
@@ -159,7 +162,7 @@ public class SimulatorAgent extends Agent {
 			}
 
 			this.currentSimulation = new Simulation(simulations);
-			System.out.println("Running simulaton nº" + simulations + "...");
+			System.out.println("Running simulation nº" + simulations + "...");
 			addBehaviour(currentSimulation);
 			simulations--;
 		}
@@ -177,9 +180,9 @@ public class SimulatorAgent extends Agent {
 
 		private void createItems() {
 			items.add(new SimpleEntry(5.0, 1.0));
-			items.add(new SimpleEntry(5.0, 2.0));
-			items.add(new SimpleEntry(5.0, 3.0));
-			items.add(new SimpleEntry(5.0, 6.0));
+			/*items.add(new SimpleEntry(5.0, 2.0));
+			items.add(new SimpleEntry(5.0, 3.0));*/
+			/*items.add(new SimpleEntry(5.0, 6.0));
 			items.add(new SimpleEntry(2.0, 1.0));
 			items.add(new SimpleEntry(2.0, 2.0));
 			items.add(new SimpleEntry(2.0, 3.0));
@@ -201,7 +204,7 @@ public class SimulatorAgent extends Agent {
 			items.add(new SimpleEntry(20.0, 2.0));
 			items.add(new SimpleEntry(20.0, 6.0));
 			items.add(new SimpleEntry(25.0, 1.0));
-			items.add(new SimpleEntry(25.0, 8.0));
+			items.add(new SimpleEntry(25.0, 8.0));*/
 		}
 
 		private class Simulation extends SimpleBehaviour {
@@ -211,12 +214,15 @@ public class SimulatorAgent extends Agent {
 			 */
 			private static final long serialVersionUID = 1L;
 
-			private ArrayList<String> csvLines = new ArrayList<String>();
 			private ContainerController container;
 			private Integer simulationNumber;
-			
+
+			private ArrayList<String[]> tableEntry = new ArrayList<String[]>(); // item, sellerName, sellerDelay,
+																				// median, variance, initialValue
+			private HashMap<String, Integer> itemInterest = new HashMap<String, Integer>();
+			private HashMap<String, Integer> itemAuctions = new HashMap<String, Integer>();
+
 			public Boolean finished = false;
-			
 
 			public Simulation(Integer simulationNo) {
 				messagesToReceive = 0;
@@ -242,15 +248,19 @@ public class SimulatorAgent extends Agent {
 			public int onEnd() {
 				try {
 					FileOutputStream csvOut = new FileOutputStream(new File(csvPath + simulationNumber + ".csv"));
-					
-					for(String line: csvLines) {
-						csvOut.write((line + "\n").getBytes());
+
+					// item, sellerName, sellerDelay, median, variance, initialValue
+					for (String[] entry : tableEntry) {
+						System.out.println(entry);
+						byte[] strBytes = (entry[0] + ", " + entry[1] + ", " + entry[2] + ", " + entry[3] + ", "
+								+ entry[4] + ", " + entry[5] + "\n").getBytes();
+						csvOut.write(strBytes);
 					}
 
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				
+
 				System.out.println("Simulation finished successfully\n");
 				return 0;
 			}
@@ -270,13 +280,14 @@ public class SimulatorAgent extends Agent {
 			public Boolean generateAgents()
 					throws StaleProxyException, ParserConfigurationException, SAXException, IOException {
 
-				/*
-				 * TODO uncomment to make it generate randomly AgentController[] buyers =
-				 * generateBuyers(); AgentController[] sellers = generateSellers();
-				 */
+				AgentController[] buyers = generateBuyers();
+				AgentController[] sellers = generateSellers();
 
-				AgentController[] buyers = this.initializeBuyers("./data/SimpleExample/buyers.xml");
-				AgentController[] sellers = this.initializeSellers("./data/SimpleExample/sellers.xml");
+				/*
+				 * AgentController[] buyers =
+				 * this.initializeBuyers("./data/SimpleExample/buyers.xml"); AgentController[]
+				 * sellers = this.initializeSellers("./data/SimpleExample/sellers.xml");
+				 */
 
 				if (buyers == null || sellers == null) {
 					System.out.println("There was a problem initializing agents, exiting...");
@@ -379,14 +390,13 @@ public class SimulatorAgent extends Agent {
 
 			public AgentController[] generateBuyers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
-				int numberBuyers = rand.nextInt(4) + 1;
 
-				System.out.println("Number of buyers " + numberBuyers);
-
+				//int numberBuyers = rand.nextInt(15) + 1;
+				int numberBuyers = 3;
 				AgentController[] buyerAgents = new AgentController[numberBuyers];
 				for (int i = 0; i < numberBuyers; i++) {
 					String name = "Buyer " + i;
-					int numberofItems = rand.nextInt(26) + 1;
+					int numberofItems = 1; //rand.nextInt(15) + 1;
 
 					Object[] itemsEntry = new Object[numberofItems];
 					for (int a = 0; a < numberofItems; a++) {
@@ -398,6 +408,11 @@ public class SimulatorAgent extends Agent {
 
 						itemsEntry[a] = new SimpleEntry<String, Float>(itemName, itemPrice);
 
+						if (itemInterest.keySet().contains(itemName))
+							itemInterest.put(itemName, itemInterest.get(itemName).intValue() + 1);
+						else
+							itemInterest.put(itemName, 1);
+
 					}
 					buyerAgents[i] = this.container.createNewAgent(name, "main.BuyerAgent", itemsEntry);
 
@@ -407,16 +422,17 @@ public class SimulatorAgent extends Agent {
 
 			public AgentController[] generateSellers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
-				int numberOfSellers = rand.nextInt(4) + 1;
 
-				System.out.println("Number of sellers " + numberOfSellers);
-
+				//int numberOfSellers = rand.nextInt(3) + 1;
+				int numberOfSellers = 1;
 				AgentController[] sellerAgents = new AgentController[numberOfSellers];
 				for (int i = 0; i < numberOfSellers; i++) {
 					String name = "Seller " + i;
-					int numberOfItems = rand.nextInt(26) + 1;
+					//int numberOfItems = rand.nextInt(3) + 1;
+					int numberOfItems = 1;
 					Object[] bidsEntry = new Object[numberOfItems + 1];
-					bidsEntry[0] = rand.nextInt(3);
+					Integer sellerDelay = rand.nextInt(3);
+					bidsEntry[0] = sellerDelay;
 					for (int a = 1; a < numberOfItems + 1; a++) {
 						int itemId = rand.nextInt(items.size());
 						String itemName = "item " + itemId;
@@ -426,6 +442,17 @@ public class SimulatorAgent extends Agent {
 						Float inc = 0.25f + rand.nextFloat() * (2.0f - 0.25f);
 						Integer delivery = rand.nextInt(5) + 1;
 						bidsEntry[a] = new Bid(itemName, itemPrice, delivery, inc);
+
+						if (itemAuctions.keySet().contains(itemName))
+							itemAuctions.put(itemName, itemAuctions.get(itemName).intValue() + 1);
+						else
+							itemAuctions.put(itemName, 1);
+
+						// item, sellerName, sellerDelay, median, variance, initialValue
+						String[] entry = { itemName, name, sellerDelay.toString(),
+								items.get(itemId).getKey() + "f".toString(), items.get(itemId).getValue() + "f".toString(),
+								itemPrice.toString() };
+						tableEntry.add(entry);
 					}
 
 					sellerAgents[i] = this.container.createNewAgent(name, "main.SellerAgent", bidsEntry);
