@@ -391,22 +391,30 @@ public class SimulatorAgent extends Agent {
 			public AgentController[] generateBuyers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
 
-				//int numberBuyers = rand.nextInt(15) + 1;
+				//int numberBuyers = rand.nextInt(15) + 2;
 				int numberBuyers = 3;
 				AgentController[] buyerAgents = new AgentController[numberBuyers];
+				
 				for (int i = 0; i < numberBuyers; i++) {
 					String name = "Buyer " + i;
-					int numberofItems = 1; //rand.nextInt(15) + 1;
+					int numberofItems = 1; //rand.nextInt(items.size()) + 1;
 
 					Object[] itemsEntry = new Object[numberofItems];
+					ArrayList<String> itemsNames = new ArrayList<String>();
 					for (int a = 0; a < numberofItems; a++) {
+						
 						int itemId = rand.nextInt(items.size());
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
 								+ new Float(items.get(itemId).getKey() + "f");
 
+						if(itemsNames.contains(itemName)) {
+							a--;
+							continue;
+						}
 						itemsEntry[a] = new SimpleEntry<String, Float>(itemName, itemPrice);
+						itemsNames.add(itemName);
 
 						if (itemInterest.keySet().contains(itemName))
 							itemInterest.put(itemName, itemInterest.get(itemName).intValue() + 1);
@@ -428,9 +436,10 @@ public class SimulatorAgent extends Agent {
 				AgentController[] sellerAgents = new AgentController[numberOfSellers];
 				for (int i = 0; i < numberOfSellers; i++) {
 					String name = "Seller " + i;
-					//int numberOfItems = rand.nextInt(3) + 1;
+					//int numberOfItems = rand.nextInt(items.size()) + 1;
 					int numberOfItems = 1;
 					Object[] bidsEntry = new Object[numberOfItems + 1];
+					ArrayList<String> itemsName = new ArrayList<String>();
 					Integer sellerDelay = rand.nextInt(3);
 					bidsEntry[0] = sellerDelay;
 					for (int a = 1; a < numberOfItems + 1; a++) {
@@ -441,7 +450,13 @@ public class SimulatorAgent extends Agent {
 								+ new Float(items.get(itemId).getKey() + "f");
 						Float inc = 0.25f + rand.nextFloat() * (2.0f - 0.25f);
 						Integer delivery = rand.nextInt(5) + 1;
+						
+						if(itemsName.contains(itemName)) {
+							a--;
+							continue;
+						}
 						bidsEntry[a] = new Bid(itemName, itemPrice, delivery, inc);
+						itemsName.add(itemName);
 
 						if (itemAuctions.keySet().contains(itemName))
 							itemAuctions.put(itemName, itemAuctions.get(itemName).intValue() + 1);
