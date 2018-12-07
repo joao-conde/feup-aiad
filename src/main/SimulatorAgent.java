@@ -1,6 +1,8 @@
 package main;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.AbstractMap.SimpleEntry;
 
@@ -34,7 +36,6 @@ import jade.proto.SSResponderDispatcher;
 import jade.wrapper.AgentController;
 import jade.wrapper.ContainerController;
 import jade.wrapper.StaleProxyException;
-import utilities.MarketLogger;
 import utilities.Utils;
 
 public class SimulatorAgent extends Agent {
@@ -45,6 +46,7 @@ public class SimulatorAgent extends Agent {
 	private static final long serialVersionUID = 1L;
 
 	private Integer messagesToReceive, messagesReceived = 0;
+	private ArrayList<Bid> itemsSold = null;
 
 	protected void setup() {
 		Object[] args = this.getArguments();
@@ -99,7 +101,7 @@ public class SimulatorAgent extends Agent {
 				messagesReceived++;
 				try {
 					if (msg.getContentObject() != null) {
-						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
+						itemsSold = ((ArrayList<Bid>) msg.getContentObject());
 						for (Bid bid : itemsSold) {
 							System.out.println("Write to .csv: sold " + bid.getItem() + " for " + bid.getValue());
 						}
@@ -124,6 +126,7 @@ public class SimulatorAgent extends Agent {
 		 * 
 		 */
 		private static final long serialVersionUID = 1L;
+		protected String csvPath = "simulations/";
 		protected Boolean finished = false;
 		protected Integer simulations;
 		protected Simulation currentSimulation = null;
@@ -135,6 +138,8 @@ public class SimulatorAgent extends Agent {
 			this.simulations = simulations;
 			this.jadeRt = Runtime.instance();
 			this.createItems();
+			new File(csvPath).mkdirs();
+
 			// ensure log folder exist if logs uncommented in agents
 			/*
 			 * MarketLogger.calculateLogPath(); new File(MarketLogger.logPath).mkdirs();
@@ -206,16 +211,19 @@ public class SimulatorAgent extends Agent {
 			 */
 			private static final long serialVersionUID = 1L;
 
+			private ArrayList<String> csvLines = new ArrayList<String>();
 			private ContainerController container;
 			private Integer simulationNumber;
+			
 			public Boolean finished = false;
+			
 
 			public Simulation(Integer simulationNo) {
 				messagesToReceive = 0;
 				messagesReceived = 0;
+				itemsSold = null;
 				simulationNumber = simulationNo;
 				try {
-					this.createCsvPath();
 					this.createContainer();
 					this.generateAgents();
 				} catch (SecurityException | StaleProxyException | ParserConfigurationException | SAXException
@@ -232,6 +240,17 @@ public class SimulatorAgent extends Agent {
 
 			@Override
 			public int onEnd() {
+				try {
+					FileOutputStream csvOut = new FileOutputStream(new File(csvPath + simulationNumber + ".csv"));
+					
+					for(String line: csvLines) {
+						csvOut.write((line + "\n").getBytes());
+					}
+
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
 				System.out.println("Simulation finished successfully\n");
 				return 0;
 			}
@@ -239,11 +258,6 @@ public class SimulatorAgent extends Agent {
 			@Override
 			public boolean done() {
 				return finished;
-			}
-
-			public void createCsvPath() {
-				String csvPath = "simulations/" + simulationNumber + "/";
-				new File(csvPath).mkdirs();
 			}
 
 			public void createContainer() {

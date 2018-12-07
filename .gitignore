@@ -1,6 +1,7 @@
 src/bin/
 /bin/
 /logs
+/simulations
 
 .classpath
 .project
