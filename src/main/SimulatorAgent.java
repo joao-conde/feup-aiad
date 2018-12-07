@@ -151,7 +151,7 @@ public class SimulatorAgent extends Agent {
 			}
 
 			this.currentSimulation = new Simulation();
-			System.out.println("Launched simulaton number " + simulations);
+			System.out.println("Running simulaton n." + simulations + "...");
 			addBehaviour(currentSimulation);
 			simulations--;
 		}
@@ -160,7 +160,7 @@ public class SimulatorAgent extends Agent {
 		public boolean done() {
 			return finished;
 		}
-		
+
 		@Override
 		public int onEnd() {
 			System.exit(0);
