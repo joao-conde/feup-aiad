@@ -5,5 +5,10 @@
             <delivery>3</delivery>
             <increase>0.5</increase>
         </bid>
+        <bid>
+            <item price="1">k</item>
+            <delivery>3</delivery>
+            <increase>0.5</increase>
+        </bid>
     </seller>
 </market>

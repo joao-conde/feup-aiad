@@ -180,31 +180,23 @@ public class SimulatorAgent extends Agent {
 
 		private void createItems() {
 			items.add(new SimpleEntry(5.0, 1.0));
-			/*items.add(new SimpleEntry(5.0, 2.0));
-			items.add(new SimpleEntry(5.0, 3.0));*/
-			/*items.add(new SimpleEntry(5.0, 6.0));
-			items.add(new SimpleEntry(2.0, 1.0));
-			items.add(new SimpleEntry(2.0, 2.0));
-			items.add(new SimpleEntry(2.0, 3.0));
-			items.add(new SimpleEntry(2.0, 4.0));
-			items.add(new SimpleEntry(1.0, 1.0));
-			items.add(new SimpleEntry(1.0, 2.0));
-			items.add(new SimpleEntry(8.0, 2.0));
-			items.add(new SimpleEntry(8.0, 3.0));
-			items.add(new SimpleEntry(8.0, 4.0));
-			items.add(new SimpleEntry(8.0, 6.0));
-			items.add(new SimpleEntry(10.0, 1.0));
-			items.add(new SimpleEntry(10.0, 2.0));
-			items.add(new SimpleEntry(10.0, 4.0));
-			items.add(new SimpleEntry(10.0, 6.0));
-			items.add(new SimpleEntry(10.0, 8.0));
-			items.add(new SimpleEntry(15.0, 1.0));
-			items.add(new SimpleEntry(15.0, 2.0));
-			items.add(new SimpleEntry(15.0, 3.0));
-			items.add(new SimpleEntry(20.0, 2.0));
-			items.add(new SimpleEntry(20.0, 6.0));
-			items.add(new SimpleEntry(25.0, 1.0));
-			items.add(new SimpleEntry(25.0, 8.0));*/
+			/*
+			 * items.add(new SimpleEntry(5.0, 2.0)); items.add(new SimpleEntry(5.0, 3.0));
+			 */
+			/*
+			 * items.add(new SimpleEntry(5.0, 6.0)); items.add(new SimpleEntry(2.0, 1.0));
+			 * items.add(new SimpleEntry(2.0, 2.0)); items.add(new SimpleEntry(2.0, 3.0));
+			 * items.add(new SimpleEntry(2.0, 4.0)); items.add(new SimpleEntry(1.0, 1.0));
+			 * items.add(new SimpleEntry(1.0, 2.0)); items.add(new SimpleEntry(8.0, 2.0));
+			 * items.add(new SimpleEntry(8.0, 3.0)); items.add(new SimpleEntry(8.0, 4.0));
+			 * items.add(new SimpleEntry(8.0, 6.0)); items.add(new SimpleEntry(10.0, 1.0));
+			 * items.add(new SimpleEntry(10.0, 2.0)); items.add(new SimpleEntry(10.0, 4.0));
+			 * items.add(new SimpleEntry(10.0, 6.0)); items.add(new SimpleEntry(10.0, 8.0));
+			 * items.add(new SimpleEntry(15.0, 1.0)); items.add(new SimpleEntry(15.0, 2.0));
+			 * items.add(new SimpleEntry(15.0, 3.0)); items.add(new SimpleEntry(20.0, 2.0));
+			 * items.add(new SimpleEntry(20.0, 6.0)); items.add(new SimpleEntry(25.0, 1.0));
+			 * items.add(new SimpleEntry(25.0, 8.0));
+			 */
 		}
 
 		private class Simulation extends SimpleBehaviour {
@@ -280,14 +272,13 @@ public class SimulatorAgent extends Agent {
 			public Boolean generateAgents()
 					throws StaleProxyException, ParserConfigurationException, SAXException, IOException {
 
-				AgentController[] buyers = generateBuyers();
-				AgentController[] sellers = generateSellers();
-
 				/*
-				 * AgentController[] buyers =
-				 * this.initializeBuyers("./data/SimpleExample/buyers.xml"); AgentController[]
-				 * sellers = this.initializeSellers("./data/SimpleExample/sellers.xml");
+				 * AgentController[] buyers = generateBuyers(); AgentController[] sellers =
+				 * generateSellers();
 				 */
+
+				AgentController[] buyers = this.initializeBuyers("./data/SimpleExample/buyers.xml");
+				AgentController[] sellers = this.initializeSellers("./data/SimpleExample/sellers.xml");
 
 				if (buyers == null || sellers == null) {
 					System.out.println("There was a problem initializing agents, exiting...");
@@ -336,7 +327,8 @@ public class SimulatorAgent extends Agent {
 							itemsEntry[a] = new SimpleEntry<String, Float>(item.getTextContent(),
 									Float.parseFloat(item.getAttribute("maxvalue")));
 						}
-						buyerAgents[i] = this.container.createNewAgent(name, "main.BuyerAgent", itemsEntry);
+						buyerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.BuyerAgent",
+								itemsEntry);
 
 					}
 
@@ -380,7 +372,8 @@ public class SimulatorAgent extends Agent {
 									Float.parseFloat(item.getAttribute("price")), delivery, increase);
 						}
 
-						sellerAgents[i] = this.container.createNewAgent(name, "main.SellerAgent", bidsEntry);
+						sellerAgents[i] = this.container.createNewAgent(name + this.simulationNumber,
+								"main.SellerAgent", bidsEntry);
 					}
 				}
 
@@ -391,25 +384,25 @@ public class SimulatorAgent extends Agent {
 			public AgentController[] generateBuyers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
 
-				//int numberBuyers = rand.nextInt(15) + 2;
+				// int numberBuyers = rand.nextInt(15) + 2;
 				int numberBuyers = 3;
 				AgentController[] buyerAgents = new AgentController[numberBuyers];
-				
+
 				for (int i = 0; i < numberBuyers; i++) {
 					String name = "Buyer " + i;
-					int numberofItems = 1; //rand.nextInt(items.size()) + 1;
+					int numberofItems = 1; // rand.nextInt(items.size()) + 1;
 
 					Object[] itemsEntry = new Object[numberofItems];
 					ArrayList<String> itemsNames = new ArrayList<String>();
 					for (int a = 0; a < numberofItems; a++) {
-						
+
 						int itemId = rand.nextInt(items.size());
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
 								+ new Float(items.get(itemId).getKey() + "f");
 
-						if(itemsNames.contains(itemName)) {
+						if (itemsNames.contains(itemName)) {
 							a--;
 							continue;
 						}
@@ -422,7 +415,7 @@ public class SimulatorAgent extends Agent {
 							itemInterest.put(itemName, 1);
 
 					}
-					buyerAgents[i] = this.container.createNewAgent(name, "main.BuyerAgent", itemsEntry);
+					buyerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.BuyerAgent", itemsEntry);
 
 				}
 				return buyerAgents;
@@ -431,12 +424,12 @@ public class SimulatorAgent extends Agent {
 			public AgentController[] generateSellers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
 
-				//int numberOfSellers = rand.nextInt(3) + 1;
+				// int numberOfSellers = rand.nextInt(3) + 1;
 				int numberOfSellers = 1;
 				AgentController[] sellerAgents = new AgentController[numberOfSellers];
 				for (int i = 0; i < numberOfSellers; i++) {
 					String name = "Seller " + i;
-					//int numberOfItems = rand.nextInt(items.size()) + 1;
+					// int numberOfItems = rand.nextInt(items.size()) + 1;
 					int numberOfItems = 1;
 					Object[] bidsEntry = new Object[numberOfItems + 1];
 					ArrayList<String> itemsName = new ArrayList<String>();
@@ -450,8 +443,8 @@ public class SimulatorAgent extends Agent {
 								+ new Float(items.get(itemId).getKey() + "f");
 						Float inc = 0.25f + rand.nextFloat() * (2.0f - 0.25f);
 						Integer delivery = rand.nextInt(5) + 1;
-						
-						if(itemsName.contains(itemName)) {
+
+						if (itemsName.contains(itemName)) {
 							a--;
 							continue;
 						}
@@ -465,12 +458,12 @@ public class SimulatorAgent extends Agent {
 
 						// item, sellerName, sellerDelay, median, variance, initialValue
 						String[] entry = { itemName, name, sellerDelay.toString(),
-								items.get(itemId).getKey() + "f".toString(), items.get(itemId).getValue() + "f".toString(),
-								itemPrice.toString() };
+								items.get(itemId).getKey() + "f".toString(),
+								items.get(itemId).getValue() + "f".toString(), itemPrice.toString() };
 						tableEntry.add(entry);
 					}
 
-					sellerAgents[i] = this.container.createNewAgent(name, "main.SellerAgent", bidsEntry);
+					sellerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.SellerAgent", bidsEntry);
 				}
 				return sellerAgents;
 			}

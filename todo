@@ -1,4 +1,1 @@
-- geraçao de input aleatorio sobre algumas restrições
-- um seller apenas vende o mesmo produto 1x (nome do produto 1x) (done)
-- um buyer apenas compra o mesmo produto 1x (nome do produto 1x) (done)
-- tendo as duas acima, ler o outcome (preço vendido ou nao) e escrever no .csv
+- ler o outcome (preço vendido ou nao) e escrever no .csv
