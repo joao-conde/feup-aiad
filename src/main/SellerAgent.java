@@ -188,7 +188,7 @@ public class SellerAgent extends Agent {
 					bidsCounter.set(currentBidIndex,bidsCounter.get(currentBidIndex)+1);
 					currentBidIndex++;
 					currentBidIndex %= bids.size();
-					this.reset();
+					fetchAndPropose.reset();
 				} else {
 					bidsCounter.set(currentBidIndex,bidsCounter.get(currentBidIndex)+1);
 					this.stop();
@@ -227,9 +227,6 @@ public class SellerAgent extends Agent {
 				logger.fine("Buyer "+buyerAgentsToCurrentItem[i].getLocalName());
 			}
 			cfp = new ACLMessage(ACLMessage.CFP);
-			if(cfp == null) {
-				logger.fine("È NULLO");
-			}
 			
 			for (AID aid : buyerAgentsToCurrentItem) {
 				logger.fine(""+aid.getLocalName());

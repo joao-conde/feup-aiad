@@ -17,7 +17,6 @@
     
     <buyer name="Daniel">
         <item maxvalue="35">c</item>
-        <item maxvalue="50">k</item>
     </buyer>
     
     <buyer name="Eusebio">
