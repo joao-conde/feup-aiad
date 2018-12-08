@@ -2,7 +2,7 @@
 
 <market>
     <buyer name="Alberto">
-        <item maxvalue="15.0">a</item>
+        <item maxvalue="50">a</item>
     </buyer>
 
     <buyer name="Bruno">
@@ -17,10 +17,10 @@
     
     <buyer name="Daniel">
         <item maxvalue="35">c</item>
-        <item maxvalue="50">d</item>
+        <item maxvalue="50">k</item>
     </buyer>
     
     <buyer name="Eusebio">
-        <item maxvalue="10">e</item>
+        <item maxvalue="10">k</item>
     </buyer>
 </market>
