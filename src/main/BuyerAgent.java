@@ -35,6 +35,7 @@ public class BuyerAgent extends Agent {
 	private Logger logger;
 	private String agentName;
 	private DFAgentDescription dfd;
+	private boolean sentInformToSim = false;
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>();
 	private ConcurrentHashMap<String, Float> items = new ConcurrentHashMap<String, Float>(); // itemID, maxValue
 	protected ConcurrentHashMap<String, Float> ratings = new ConcurrentHashMap<String, Float>(); // sellerID,
@@ -99,11 +100,14 @@ public class BuyerAgent extends Agent {
 		addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 		addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 		addBehaviour(new QueryDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
-		addBehaviour(new CheckEnd(this, 5000, 5));
+		addBehaviour(new CheckEnd(this, 2000, 2));
 	}
 	
 	protected void takeDown() {
-		informSimulatorAgent();
+		if(!sentInformToSim) {
+			informSimulatorAgent();
+			sentInformToSim = true;
+		}
 		this.doDelete();
 	}
 

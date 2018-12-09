@@ -101,6 +101,7 @@ public class SimulatorAgent extends Agent {
 			public void action() {
 				messagesReceived++;
 				try {
+					System.out.println("MESSAGE INF: " + msg.getSender() + msg.getContentObject());
 					if (msg.getContentObject() != null) {
 						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
 
@@ -160,7 +161,7 @@ public class SimulatorAgent extends Agent {
 				finished = true;
 				return;
 			}
-
+			
 			this.currentSimulation = new Simulation(simulations);
 			System.out.println("Running simulation nº" + simulations + "...");
 			addBehaviour(currentSimulation);

@@ -36,7 +36,7 @@ public class SellerAgent extends Agent {
 	private Bid highestBid = null;
 	private String agentName;
 	private SequentialBehaviour fetchAndPropose;
-	private boolean canTerminate = false;
+	private boolean sentInformToSim = false;
 	
 	private ArrayList<Bid> itemsSold = new ArrayList<Bid>();
 
@@ -84,7 +84,10 @@ public class SellerAgent extends Agent {
 	}
 	
 	protected void takeDown() {
-		informSimulatorAgent();
+		if(!sentInformToSim) {
+			informSimulatorAgent();
+			sentInformToSim = true;
+		}
 		this.doDelete();
 	}
 
