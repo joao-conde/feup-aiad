@@ -84,11 +84,8 @@ public class SellerAgent extends Agent {
 	}
 	
 	protected void takeDown() {
-		if(!sentInformToSim) {
-			informSimulatorAgent();
-			sentInformToSim = true;
-		}
-		this.doDelete();
+		informSimulatorAgent();
+	
 	}
 
 	protected void informSimulatorAgent() {
@@ -142,7 +139,7 @@ public class SellerAgent extends Agent {
 			if (bids.isEmpty() || (!bidsCounter.contains(0) && !bidsCounter.contains(1))) {
 				logger.fine(this.myAgent + " has no more items to sell");
 				statManager.logStatistics(logger);
-				takeDown();
+				myAgent.doDelete();
 				finished = false;
 			} else {
 				highestBid = null;

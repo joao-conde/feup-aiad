@@ -35,7 +35,6 @@ public class BuyerAgent extends Agent {
 	private Logger logger;
 	private String agentName;
 	private DFAgentDescription dfd;
-	private boolean sentInformToSim = false;
 	private ArrayList<Purchase> purchases = new ArrayList<Purchase>();
 	private ConcurrentHashMap<String, Float> items = new ConcurrentHashMap<String, Float>(); // itemID, maxValue
 	protected ConcurrentHashMap<String, Float> ratings = new ConcurrentHashMap<String, Float>(); // sellerID,
@@ -104,11 +103,13 @@ public class BuyerAgent extends Agent {
 	}
 	
 	protected void takeDown() {
-		if(!sentInformToSim) {
-			informSimulatorAgent();
-			sentInformToSim = true;
+		try {
+			DFService.deregister(this);
+		} catch (FIPAException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
-		this.doDelete();
+		informSimulatorAgent();
 	}
 
 	private class CFPDispatcher extends SSResponderDispatcher {
@@ -584,12 +585,12 @@ public class BuyerAgent extends Agent {
 			if(items.isEmpty()) {
 				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
 				statManager.logStatistics(logger);
-				takeDown();
+				myAgent.doDelete();
 			}
 			else if(ticksNoActivity > maxTickers) {
 				logger.fine(agentName + " has waited long enough. Exiting the market");
 				statManager.logStatistics(logger);
-				takeDown();
+				myAgent.doDelete();
 			}
 		}
 	}

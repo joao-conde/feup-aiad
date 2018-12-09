@@ -104,11 +104,6 @@ public class SimulatorAgent extends Agent {
 					System.out.println("MESSAGE INF: " + msg.getSender() + msg.getContentObject());
 					if (msg.getContentObject() != null) {
 						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
-
-						/*
-						 * for(Bid item: itemsSold) { TODO: associate for each of the table entrys if
-						 * product was sold or not }
-						 */
 					}
 				} catch (UnreadableException e) {
 					e.printStackTrace();
