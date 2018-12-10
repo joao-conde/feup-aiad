@@ -147,7 +147,7 @@ public class SimulatorAgent extends Agent {
 			try {
 				generalCsv = new FileOutputStream(new File(genericCSV), true);
 				generalCsv.write(("Item, Seller, Shipment Delay, Average, Variance, "
-						+ "Initial Value, Same item auctions, Interested buyers, Sold Value, Sold?").getBytes());
+						+ "Initial Value, Same item auctions, Interested buyers, Sold Value, Sold?\n").getBytes());
 			} catch (IOException e) {
 				e.printStackTrace();
 			}
