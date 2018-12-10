@@ -99,12 +99,10 @@ public class SimulatorAgent extends Agent {
 
 			@Override
 			public void action() {
-				messagesReceived++;
 				try {
 					if (msg.getContentObject() != null) {
 
 						ArrayList<Bid> sellerSoldItems = ((ArrayList<Bid>) msg.getContentObject());
-						System.out.println(sellerSoldItems);
 						String sellerID = msg.getSender().getLocalName();
 						for (Bid bid : sellerSoldItems) {
 							itemsSold.put(sellerID + "-" + bid.getItem(), bid.getValue());
@@ -114,6 +112,7 @@ public class SimulatorAgent extends Agent {
 					e.printStackTrace();
 				}
 				finished = true;
+				messagesReceived++;
 			}
 
 			@Override
@@ -131,6 +130,7 @@ public class SimulatorAgent extends Agent {
 		 */
 		private static final long serialVersionUID = 1L;
 		protected String csvPath = "simulations/";
+		protected String genericCSV = csvPath + "aggregated.csv";
 		protected Boolean finished = false;
 		protected Integer simulations;
 		protected Simulation currentSimulation = null;
@@ -143,6 +143,14 @@ public class SimulatorAgent extends Agent {
 			this.jadeRt = Runtime.instance();
 			this.createItems();
 			new File(csvPath).mkdirs();
+			FileOutputStream generalCsv;
+			try {
+				generalCsv = new FileOutputStream(new File(genericCSV), true);
+				generalCsv.write(("Item, Seller, Shipment Delay, Average, Variance, "
+						+ "Initial Value, Same item auctions, Interested buyers, Sold Value, Sold?").getBytes());
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 
 			// ensure log folder exist if logs uncommented in agents
 			/*
@@ -180,24 +188,22 @@ public class SimulatorAgent extends Agent {
 		}
 
 		private void createItems() {
-			items.add(new SimpleEntry(5.0, 1.0));
-			/*
-			 * items.add(new SimpleEntry(5.0, 2.0)); items.add(new SimpleEntry(5.0, 3.0));
-			 */
-			/*
-			 * items.add(new SimpleEntry(5.0, 6.0)); items.add(new SimpleEntry(2.0, 1.0));
-			 * items.add(new SimpleEntry(2.0, 2.0)); items.add(new SimpleEntry(2.0, 3.0));
-			 * items.add(new SimpleEntry(2.0, 4.0)); items.add(new SimpleEntry(1.0, 1.0));
-			 * items.add(new SimpleEntry(1.0, 2.0)); items.add(new SimpleEntry(8.0, 2.0));
-			 * items.add(new SimpleEntry(8.0, 3.0)); items.add(new SimpleEntry(8.0, 4.0));
-			 * items.add(new SimpleEntry(8.0, 6.0)); items.add(new SimpleEntry(10.0, 1.0));
-			 * items.add(new SimpleEntry(10.0, 2.0)); items.add(new SimpleEntry(10.0, 4.0));
-			 * items.add(new SimpleEntry(10.0, 6.0)); items.add(new SimpleEntry(10.0, 8.0));
-			 * items.add(new SimpleEntry(15.0, 1.0)); items.add(new SimpleEntry(15.0, 2.0));
-			 * items.add(new SimpleEntry(15.0, 3.0)); items.add(new SimpleEntry(20.0, 2.0));
-			 * items.add(new SimpleEntry(20.0, 6.0)); items.add(new SimpleEntry(25.0, 1.0));
-			 * items.add(new SimpleEntry(25.0, 8.0));
-			 */
+			items.add(new SimpleEntry(5.0, 2.0));
+			items.add(new SimpleEntry(5.0, 3.0));
+			items.add(new SimpleEntry(8.0, 2.0));
+			items.add(new SimpleEntry(8.0, 3.0));
+			items.add(new SimpleEntry(8.0, 5.0));
+			items.add(new SimpleEntry(10.0, 1.0));
+			items.add(new SimpleEntry(10.0, 3.0));
+			items.add(new SimpleEntry(10.0, 2.0));
+			items.add(new SimpleEntry(15.0, 1.0));
+			items.add(new SimpleEntry(15.0, 3.0));
+			items.add(new SimpleEntry(15.0, 2.0));
+			items.add(new SimpleEntry(20.0, 2.0));
+			items.add(new SimpleEntry(20.0, 3.0));
+			items.add(new SimpleEntry(20.0, 6.0));
+			items.add(new SimpleEntry(25.0, 1.0));
+			items.add(new SimpleEntry(25.0, 8.0));
 		}
 
 		private class Simulation extends SimpleBehaviour {
@@ -209,6 +215,8 @@ public class SimulatorAgent extends Agent {
 
 			private ContainerController container;
 			private Integer simulationNumber;
+			
+			private ArrayList<Integer> itemsChosen = new ArrayList<Integer>();
 
 			private ArrayList<String[]> tableEntry = new ArrayList<String[]>(); // item, sellerName, sellerDelay,
 																				// median, variance, initialValue
@@ -241,18 +249,28 @@ public class SimulatorAgent extends Agent {
 			public int onEnd() {
 				try {
 					FileOutputStream csvOut = new FileOutputStream(new File(csvPath + simulationNumber + ".csv"));
-
+					FileOutputStream generalCsv = new FileOutputStream(new File(genericCSV), true);
 					// item, sellerName, sellerDelay, median, variance, initialValue, itemAuctions,
 					// itemInterest, priceSold (-1 if not sold)
 					for (String[] entry : tableEntry) {
 
 						Float soldFor = -1f;
-						if (itemsSold.get(entry[1] + "-" + entry[0]) != null)
-							soldFor = itemsSold.get(entry[1] + "-" + entry[0]);
+						String key = entry[1] + simulationNumber + "-" + entry[0];
+						if (itemsSold.get(key) != null) {
+							soldFor = itemsSold.get(key);
+						}
+						
+						Boolean sold = (soldFor != -1);
+						
+						Integer interest = 0;
+						if (itemInterest.get(entry[0]) != null)
+							interest = itemInterest.get(entry[0]);
 
 						byte[] strBytes = (entry[0] + ", " + entry[1] + ", " + entry[2] + ", " + entry[3] + ", "
 								+ entry[4] + ", " + entry[5] + ", " + itemAuctions.get(entry[0]) + ", "
-								+ itemInterest.get(entry[0]) + ", " + soldFor + "\n").getBytes();
+								+ interest + ", " + soldFor + ", " + sold + "\n").getBytes();
+						
+						generalCsv.write(strBytes);
 						csvOut.write(strBytes);
 					}
 
@@ -307,7 +325,7 @@ public class SimulatorAgent extends Agent {
 
 			}
 
-			public AgentController[] initializeBuyers(String filepath)
+/*			public AgentController[] initializeBuyers(String filepath)
 					throws ParserConfigurationException, SAXException, IOException, StaleProxyException {
 
 				File xml = new File(filepath);
@@ -389,31 +407,32 @@ public class SimulatorAgent extends Agent {
 
 			}
 
+*/			
 			public AgentController[] generateBuyers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
 
-				// int numberBuyers = rand.nextInt(15) + 2;
-				int numberBuyers = 3;
+				int numberBuyers = rand.nextInt(20) + 5;
 				AgentController[] buyerAgents = new AgentController[numberBuyers];
 
 				for (int i = 0; i < numberBuyers; i++) {
 					String name = "Buyer " + i;
-					int numberofItems = 1; // rand.nextInt(items.size()) + 1;
+					int numberofItems = rand.nextInt(items.size()) + 1;
 
 					Object[] itemsEntry = new Object[numberofItems];
 					ArrayList<String> itemsNames = new ArrayList<String>();
 					for (int a = 0; a < numberofItems; a++) {
 
-						int itemId = rand.nextInt(items.size());
+						int itemId = rand.nextInt(items.size());						
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
-								+ new Float(items.get(itemId).getKey() + "f");
-
+								+ new Float(items.get(itemId).getKey() + "f") * 1.2f;
+						
 						if (itemsNames.contains(itemName)) {
 							a--;
 							continue;
 						}
+						itemsChosen.add(itemId);
 						itemsEntry[a] = new SimpleEntry<String, Float>(itemName, itemPrice);
 						itemsNames.add(itemName);
 
@@ -433,24 +452,34 @@ public class SimulatorAgent extends Agent {
 			public AgentController[] generateSellers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
 
-				// int numberOfSellers = rand.nextInt(3) + 1;
-				int numberOfSellers = 1;
+				int numberOfSellers = rand.nextInt(7) + 3;
 				AgentController[] sellerAgents = new AgentController[numberOfSellers];
 				for (int i = 0; i < numberOfSellers; i++) {
 					String name = "Seller " + i;
-					// int numberOfItems = rand.nextInt(items.size()) + 1;
-					int numberOfItems = 1;
+					int numberOfItems = rand.nextInt(items.size()) + 1;
 					Object[] bidsEntry = new Object[numberOfItems + 1];
 					ArrayList<String> itemsName = new ArrayList<String>();
-					Integer sellerDelay = rand.nextInt(3);
+					Integer sellerDelay = rand.nextInt(5);
 					bidsEntry[0] = sellerDelay;
 					for (int a = 1; a < numberOfItems + 1; a++) {
-						int itemId = rand.nextInt(items.size());
+						
+						int itemId;
+						
+						float p = rand.nextFloat();
+						if(p < 0.7) {
+							itemId = itemsChosen.get(rand.nextInt(itemsChosen.size())); //choose from buyer products
+						}
+						else {
+							itemId = rand.nextInt(items.size());
+						}
+						
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
 								+ new Float(items.get(itemId).getKey() + "f");
-						Float inc = 0.25f + rand.nextFloat() * (2.0f - 0.25f);
+						
+						Float inc = 0.25f + rand.nextFloat() * 0.25f;
+						
 						Integer delivery = rand.nextInt(5) + 1;
 
 						if (itemsName.contains(itemName)) {

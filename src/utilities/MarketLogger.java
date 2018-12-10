@@ -47,7 +47,7 @@ public class MarketLogger {
 		Logger logger = Logger.getJADELogger(className + '.' + agentName);
 		logger.setLevel(Logger.ALL);
 
-		try {
+		/*try {
 			FileHandler fh = new FileHandler(logPath + agentName + ".log");
 			fh.setFormatter(messageFormatter());
 			logger.addHandler(fh);
@@ -58,7 +58,7 @@ public class MarketLogger {
 		} catch (SecurityException | IOException e) {
 			e.printStackTrace();
 		}
-
+*/
 		return logger;
 	}
 	

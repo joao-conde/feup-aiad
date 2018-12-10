@@ -98,7 +98,7 @@ public class BuyerAgent extends Agent {
 		addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 		addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 		addBehaviour(new QueryDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
-		addBehaviour(new CheckEnd(this, 2000, 2));
+		addBehaviour(new CheckEnd(this, 2000, 25));
 	}
 	
 	protected void takeDown() {

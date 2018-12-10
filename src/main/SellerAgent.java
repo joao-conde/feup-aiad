@@ -321,6 +321,7 @@ public class SellerAgent extends Agent {
 					else
 						winnerMessage.addUserDefinedParameter("DeliveryTime",
 								(computeDelay(bid.getDeliveryTime(), bid.getDeliveryTime() + extraDelay)).toString());
+
 				} catch (UnreadableException e) {
 					e.printStackTrace();
 				}
@@ -403,9 +404,8 @@ public class SellerAgent extends Agent {
 					super.reset();
 				} else {
 					if (msg.getContent().equals(Utils.PURCHASE)) {
-
 						itemsSold.add(highestBid);
-						statManager.addItemSell(highestBid);//TODO comment all stats and loggers, possible decrease timers ---> faster run
+						statManager.addItemSell(highestBid); //TODO comment all stats and loggers, possible decrease timers ---> faster run
 						logger.fine(highestBid.getItem() + " sold to " + msg.getSender().getLocalName());
 
 						if (!bids.isEmpty()) {
