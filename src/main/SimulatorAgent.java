@@ -47,7 +47,7 @@ public class SimulatorAgent extends Agent {
 	private static final long serialVersionUID = 1L;
 
 	private Integer messagesToReceive, messagesReceived = 0;
-	private HashMap<String, Integer> itemsSold = new HashMap<String, Integer>();
+	private HashMap<String, Float> itemsSold = new HashMap<String, Float>();
 
 	protected void setup() {
 		Object[] args = this.getArguments();
@@ -101,9 +101,14 @@ public class SimulatorAgent extends Agent {
 			public void action() {
 				messagesReceived++;
 				try {
-					System.out.println("MESSAGE INF: " + msg.getSender() + msg.getContentObject());
 					if (msg.getContentObject() != null) {
-						ArrayList<Bid> itemsSold = ((ArrayList<Bid>) msg.getContentObject());
+
+						ArrayList<Bid> sellerSoldItems = ((ArrayList<Bid>) msg.getContentObject());
+						System.out.println(sellerSoldItems);
+						String sellerID = msg.getSender().getLocalName();
+						for (Bid bid : sellerSoldItems) {
+							itemsSold.put(sellerID + "-" + bid.getItem(), bid.getValue());
+						}
 					}
 				} catch (UnreadableException e) {
 					e.printStackTrace();
@@ -156,7 +161,7 @@ public class SimulatorAgent extends Agent {
 				finished = true;
 				return;
 			}
-			
+
 			this.currentSimulation = new Simulation(simulations);
 			System.out.println("Running simulation nº" + simulations + "...");
 			addBehaviour(currentSimulation);
@@ -215,7 +220,7 @@ public class SimulatorAgent extends Agent {
 			public Simulation(Integer simulationNo) {
 				messagesToReceive = 0;
 				messagesReceived = 0;
-				itemsSold = null;
+				itemsSold = new HashMap<String, Float>();
 				simulationNumber = simulationNo;
 				try {
 					this.createContainer();
@@ -237,11 +242,17 @@ public class SimulatorAgent extends Agent {
 				try {
 					FileOutputStream csvOut = new FileOutputStream(new File(csvPath + simulationNumber + ".csv"));
 
-					// item, sellerName, sellerDelay, median, variance, initialValue
+					// item, sellerName, sellerDelay, median, variance, initialValue, itemAuctions,
+					// itemInterest, priceSold (-1 if not sold)
 					for (String[] entry : tableEntry) {
-						System.out.println(entry);
+
+						Float soldFor = -1f;
+						if (itemsSold.get(entry[1] + "-" + entry[0]) != null)
+							soldFor = itemsSold.get(entry[1] + "-" + entry[0]);
+
 						byte[] strBytes = (entry[0] + ", " + entry[1] + ", " + entry[2] + ", " + entry[3] + ", "
-								+ entry[4] + ", " + entry[5] + "\n").getBytes();
+								+ entry[4] + ", " + entry[5] + ", " + itemAuctions.get(entry[0]) + ", "
+								+ itemInterest.get(entry[0]) + ", " + soldFor + "\n").getBytes();
 						csvOut.write(strBytes);
 					}
 
@@ -268,13 +279,14 @@ public class SimulatorAgent extends Agent {
 			public Boolean generateAgents()
 					throws StaleProxyException, ParserConfigurationException, SAXException, IOException {
 
-				/*
-				 * AgentController[] buyers = generateBuyers(); AgentController[] sellers =
-				 * generateSellers();
-				 */
+				AgentController[] buyers = generateBuyers();
+				AgentController[] sellers = generateSellers();
 
-				AgentController[] buyers = this.initializeBuyers("./data/SimpleExample/buyers.xml");
-				AgentController[] sellers = this.initializeSellers("./data/SimpleExample/sellers.xml");
+				/*
+				 * AgentController[] buyers =
+				 * this.initializeBuyers("./data/SimpleExample/buyers.xml"); AgentController[]
+				 * sellers = this.initializeSellers("./data/SimpleExample/sellers.xml");
+				 */
 
 				if (buyers == null || sellers == null) {
 					System.out.println("There was a problem initializing agents, exiting...");
@@ -411,7 +423,8 @@ public class SimulatorAgent extends Agent {
 							itemInterest.put(itemName, 1);
 
 					}
-					buyerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.BuyerAgent", itemsEntry);
+					buyerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.BuyerAgent",
+							itemsEntry);
 
 				}
 				return buyerAgents;
@@ -459,7 +472,8 @@ public class SimulatorAgent extends Agent {
 						tableEntry.add(entry);
 					}
 
-					sellerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.SellerAgent", bidsEntry);
+					sellerAgents[i] = this.container.createNewAgent(name + this.simulationNumber, "main.SellerAgent",
+							bidsEntry);
 				}
 				return sellerAgents;
 			}

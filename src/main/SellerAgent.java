@@ -36,7 +36,6 @@ public class SellerAgent extends Agent {
 	private Bid highestBid = null;
 	private String agentName;
 	private SequentialBehaviour fetchAndPropose;
-	private boolean sentInformToSim = false;
 	
 	private ArrayList<Bid> itemsSold = new ArrayList<Bid>();
 
@@ -85,7 +84,6 @@ public class SellerAgent extends Agent {
 	
 	protected void takeDown() {
 		informSimulatorAgent();
-	
 	}
 
 	protected void informSimulatorAgent() {
@@ -333,6 +331,7 @@ public class SellerAgent extends Agent {
 				//logger.fine("No one bought, moving to next item");
 				currentBidIndex++;
 				currentBidIndex %= bids.size();
+				fetchAndPropose.reset();
 			}
 		}
 

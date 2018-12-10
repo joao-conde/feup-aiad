@@ -75,7 +75,6 @@ public class BuyerAgent extends Agent {
 
 		agentName = this.getLocalName();
 
-
 		logger = MarketLogger.createLogger(this.getClass().getName(), agentName);
 		logger.fine(agentName + " is now active in the market");
 
@@ -106,7 +105,6 @@ public class BuyerAgent extends Agent {
 		try {
 			DFService.deregister(this);
 		} catch (FIPAException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		informSimulatorAgent();
@@ -458,7 +456,7 @@ public class BuyerAgent extends Agent {
 				finished = true;
 				reply = this.msg.createReply();
 				reply.setPerformative(ACLMessage.INFORM);
-
+				logger.fine(this.getAgent().getLocalName() + " handling purchase");
 				try {
 					Bid receivedBid = (Bid) msg.getContentObject();
 					if (!items.containsKey(receivedBid.getItem())) {
