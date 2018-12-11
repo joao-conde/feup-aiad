@@ -446,7 +446,7 @@ public class SimulatorAgent extends Agent {
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
-								+ new Float(items.get(itemId).getKey() + "f");
+								+ new Float(items.get(itemId).getKey() + "f") * 1.20f;
 						
 						if (itemsNames.contains(itemName)) {
 							a--;
