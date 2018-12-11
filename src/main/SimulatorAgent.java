@@ -145,7 +145,7 @@ public class SimulatorAgent extends Agent {
 			new File(csvPath).mkdirs();
 			FileOutputStream generalCsv;
 			try {
-				generalCsv = new FileOutputStream(new File(genericCSV), true);
+				generalCsv = new FileOutputStream(new File(genericCSV));
 				generalCsv.write(("Item, Seller, Shipment Delay, Average, Variance, "
 						+ "Initial Value, Diff of initial price with avg price, Diff of avg able to spend on product with avg price of product, Same item auctions, Interested buyers, Sold Value, Sold?\n").getBytes());
 			} catch (IOException e) {
@@ -254,7 +254,8 @@ public class SimulatorAgent extends Agent {
 				}
 				
 				Float num = new Float(itemsPrices.size() + "f");
-				return sum/num;
+				
+				return (num != 0 ? sum/num : 0);
 			}
 
 			@Override
