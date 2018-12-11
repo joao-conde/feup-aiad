@@ -249,6 +249,9 @@ public class SimulatorAgent extends Agent {
 			public Float getMaxAvg(String itemName) {
 				ArrayList<Float> itemsPrices = this.avgAbleToSpend.get(itemName);
 				Float sum = 0f;
+				
+				if(itemsPrices == null) return 0f;
+				
 				for(int i = 0; i < itemsPrices.size();i++) {
 					sum += itemsPrices.get(i);
 				}
@@ -424,6 +427,7 @@ public class SimulatorAgent extends Agent {
 			}
 
 */			
+			
 			public AgentController[] generateBuyers() throws StaleProxyException {
 				Random rand = new Random(System.currentTimeMillis());
 
@@ -442,7 +446,7 @@ public class SimulatorAgent extends Agent {
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
-								+ new Float(items.get(itemId).getKey() + "f") * 1.2f;
+								+ new Float(items.get(itemId).getKey() + "f");
 						
 						if (itemsNames.contains(itemName)) {
 							a--;
@@ -487,7 +491,7 @@ public class SimulatorAgent extends Agent {
 					bidsEntry[0] = sellerDelay;
 					for (int a = 1; a < numberOfItems + 1; a++) {
 						
-						int itemId;
+						/*int itemId;
 						
 						float p = rand.nextFloat();
 						if(p < 0.7) {
@@ -495,7 +499,9 @@ public class SimulatorAgent extends Agent {
 						}
 						else {
 							itemId = rand.nextInt(items.size());
-						}
+						}*/
+						
+						int itemId = rand.nextInt(items.size());
 						
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
