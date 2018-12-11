@@ -94,13 +94,13 @@ public class BuyerAgent extends Agent {
 		}
 
 		statManager = new BuyerStatistics(agentName, items.size());
-		
+
 		addBehaviour(new InformDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.INFORM)));
 		addBehaviour(new CFPDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.CFP)));
 		addBehaviour(new QueryDispatcher(this, MessageTemplate.MatchPerformative(ACLMessage.QUERY_IF)));
 		addBehaviour(new CheckEnd(this, 2000, 25));
 	}
-	
+
 	protected void takeDown() {
 		try {
 			DFService.deregister(this);
@@ -197,9 +197,9 @@ public class BuyerAgent extends Agent {
 
 							for (AID buyerAID : buyers)
 								askRates.addReceiver(buyerAID);
-							
+
 							logger.fine(agentName + " asking other buyers for their opinion on seller " + sellerID);
-							
+
 							send(askRates);
 							awaitingRate.put(sellerID, new RatingInfo(buyers.length));
 							cfp.setProtocol(null);
@@ -242,12 +242,28 @@ public class BuyerAgent extends Agent {
 
 						} else {
 							// first bid (cfp call)
-							if (receivedBid.getValue() > items.get(receivedBid.getItem())
-									* ratings.get(cfp.getSender().getLocalName())) {
-								logger.fine(agentName + " will not even begin to bid on auction " + receivedBid.getItem()
-										+ " because price is too high already");
-								reply.setPerformative(ACLMessage.REFUSE); // first value is already too high
-								removeFromLiveAuctions(receivedBid.getItem(), cfp.getSender().getLocalName());
+							try {
+								if(!items.containsKey(receivedBid.getItem())) {
+									reply.setPerformative(ACLMessage.REFUSE);
+									
+								}
+								else if (receivedBid.getValue() > items.get(receivedBid.getItem())
+										* ratings.get(cfp.getSender().getLocalName())) {
+									logger.fine(agentName + " will not even begin to bid on auction " + receivedBid.getItem()
+											+ " because price is too high already");
+									reply.setPerformative(ACLMessage.REFUSE); // first value is already too high
+									removeFromLiveAuctions(receivedBid.getItem(), cfp.getSender().getLocalName());
+								}
+							}
+							catch(NullPointerException e) {
+								e.printStackTrace();
+								System.out.println("\nUnexpected crash");
+								System.out.println(receivedBid);
+								System.out.println(receivedBid.getValue());
+								System.out.println(items);
+								System.out.println(items.size());
+								System.out.println(receivedBid.getItem());
+								System.out.println(items.get(receivedBid.getItem()));
 							}
 						}
 						reply.setContentObject(receivedBid);
@@ -299,12 +315,12 @@ public class BuyerAgent extends Agent {
 									ratings.put(sellerID, (float) (0.3 * opinion + 0.7 * ratings.get(sellerID)));
 								else
 									ratings.put(sellerID, (float) (0.5 * opinion + 0.5 * 0.8));
-								
+
 								log += " and took their rating into account";
-							}
-							else log += " but no one had a well-formed opinion";
-							
-							//logger.fine(log);
+							} else
+								log += " but no one had a well-formed opinion";
+
+							// logger.fine(log);
 							handleRegularCFP(cfp);
 							finished = true;
 						}
@@ -342,37 +358,38 @@ public class BuyerAgent extends Agent {
 			}
 
 			protected ACLMessage handleAcceptProposal(ACLMessage cfp, ACLMessage propose, ACLMessage accept) {
-				
+
 				ACLMessage response = accept.createReply();
 				try {
 					Bid bid = (Bid) accept.getContentObject();
 					response.setPerformative(ACLMessage.INFORM);
-					logger.fine(agentName + " received an ACCEPT_PROPOSAL on " + bid.getItem() + " from seller " + accept.getSender().getLocalName());
+					logger.fine(agentName + " received an ACCEPT_PROPOSAL on " + bid.getItem() + " from seller "
+							+ accept.getSender().getLocalName());
 
 					removeFromLiveAuctions(bid.getItem(), cfp.getSender().getLocalName());
-					
+
 					statManager.incItemAuctionsWon(bid.getItem());
-					
+
 					if (!items.containsKey(bid.getItem()))
 						return response;
-					
+
 					Purchase purchase = new Purchase(bid, accept.getSender().getLocalName(),
 							Integer.parseInt(accept.getUserDefinedParameter("DeliveryTime")), items.get(bid.getItem()));
 
 					for (Purchase p : purchases) {
 						if (p.getItemID().equals(purchase.getItemID())) {
-							if(p.getValuePaid() == purchase.getValuePaid()) {
+							if (p.getValuePaid() == purchase.getValuePaid()) {
 								if (ratings.get(p.getSellerID()) < ratings.get(purchase.getSellerID())) {
 									purchases.remove(p);
 									purchases.add(purchase);
 									return response;
 								}
-							}else if(p.getValuePaid() > purchase.getValuePaid() ) {
+							} else if (p.getValuePaid() > purchase.getValuePaid()) {
 								purchases.remove(p);
 								purchases.add(purchase);
 								return response;
 							}
-							
+
 						}
 					}
 					purchases.add(purchase);
@@ -429,9 +446,9 @@ public class BuyerAgent extends Agent {
 				String sellerID = msg.getContent();
 				SimpleEntry<String, String> content;
 
-				logger.fine(agentName + " received a request for his opinion on seller " + sellerID 
-						+ " by buyer " + msg.getSender().getLocalName());
-				
+				logger.fine(agentName + " received a request for his opinion on seller " + sellerID + " by buyer "
+						+ msg.getSender().getLocalName());
+
 				reply.setPerformative(ACLMessage.INFORM);
 				reply.setProtocol(Utils.RATE);
 
@@ -480,12 +497,12 @@ public class BuyerAgent extends Agent {
 										+ msg.getSender().getLocalName());
 								items.remove(p.getItemID());
 								liveAuctions.remove(p.getItemID());
-															
+
 								ServiceDescription sd = new ServiceDescription();
 								sd.setType(Utils.SD_BUY);
 								sd.setName(p.getItemID());
 								dfd.removeServices(sd);
-								
+
 								statManager.addPurchase(p);
 								send(reply);
 								return;
@@ -580,12 +597,11 @@ public class BuyerAgent extends Agent {
 		@Override
 		protected void onTick() {
 			ticksNoActivity++;
-			if(items.isEmpty()) {
+			if (items.isEmpty()) {
 				logger.fine(agentName + " has bought everything he wanted. Exiting the market");
 				statManager.logStatistics(logger);
 				myAgent.doDelete();
-			}
-			else if(ticksNoActivity > maxTickers) {
+			} else if (ticksNoActivity > maxTickers) {
 				logger.fine(agentName + " has waited long enough. Exiting the market");
 				statManager.logStatistics(logger);
 				myAgent.doDelete();
@@ -594,7 +610,7 @@ public class BuyerAgent extends Agent {
 	}
 
 	protected void informSimulatorAgent() {
-		
+
 		DFAgentDescription template = new DFAgentDescription();
 		ServiceDescription sd = new ServiceDescription();
 		sd.setType(Utils.SIMULATOR_AGENT);
@@ -602,18 +618,16 @@ public class BuyerAgent extends Agent {
 		template.addServices(sd);
 
 		try {
-			DFAgentDescription[] result = DFService.search(this, template);			
+			DFAgentDescription[] result = DFService.search(this, template);
 			ACLMessage message = new ACLMessage(ACLMessage.INFORM);
 			message.setSender(getAID());
 			message.addReceiver(result[0].getName());
-			
-			this.send(message);					
-		} 
-		catch (FIPAException fe) {
+
+			this.send(message);
+		} catch (FIPAException fe) {
 			fe.printStackTrace();
 		}
 
 	}
-
 
 }
