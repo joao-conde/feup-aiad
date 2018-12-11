@@ -277,8 +277,8 @@ public class SimulatorAgent extends Agent {
 						Integer interest = 0;
 						if (itemInterest.get(entry[0]) != null)
 							interest = itemInterest.get(entry[0]);
-						Float percentualDif =  (new Float(entry[3])/new Float(entry[5])) - 1; 
-						Float avgMaxPrice = (new Float(entry[3])/getMaxAvg(entry[0]))-1;
+						Float percentualDif =  (new Float(entry[5])/new Float(entry[3])) - 1; 
+						Float avgMaxPrice = (getMaxAvg(entry[0])/new Float(entry[3]))-1;
 						byte[] strBytes = (entry[0] + ", " + entry[1] + ", " + entry[2] + ", " + entry[3] + ", "
 								+ entry[4] + ", " + entry[5] + ", " + percentualDif + ", " + avgMaxPrice + ", " + itemAuctions.get(entry[0]) + ", "
 								+ interest + ", " + soldFor + ", " + sold + "\n").getBytes();
