@@ -193,6 +193,18 @@ public class SimulatorAgent extends Agent {
 			items.add(new SimpleEntry(8.0, 2.0));
 			items.add(new SimpleEntry(8.0, 3.0));
 			items.add(new SimpleEntry(8.0, 5.0));
+			
+			items.add(new SimpleEntry(16.0, 1.0));
+			items.add(new SimpleEntry(16.0, 3.0));
+			items.add(new SimpleEntry(16.0, 6.0));
+			items.add(new SimpleEntry(12.0, 2.0));
+			items.add(new SimpleEntry(12.0, 4.0));
+			items.add(new SimpleEntry(12.0, 6.0));
+			items.add(new SimpleEntry(2.0, 0.5));
+			items.add(new SimpleEntry(2.0, 1.0));
+			items.add(new SimpleEntry(6.0, 1.0));
+			items.add(new SimpleEntry(6.0, 2.0));
+			
 			items.add(new SimpleEntry(10.0, 1.0));
 			items.add(new SimpleEntry(10.0, 3.0));
 			items.add(new SimpleEntry(10.0, 2.0));
@@ -446,7 +458,7 @@ public class SimulatorAgent extends Agent {
 						String itemName = "item " + itemId;
 						Float gaussianValue = new Float(rand.nextGaussian() + "f");
 						Float itemPrice = gaussianValue * new Float(items.get(itemId).getValue() + "f")
-								+ new Float(items.get(itemId).getKey() + "f") * 1.20f;
+								+ new Float(items.get(itemId).getKey() + "f");
 						
 						if (itemsNames.contains(itemName)) {
 							a--;
