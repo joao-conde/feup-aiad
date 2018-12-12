@@ -264,7 +264,7 @@ public class SimulatorAgent extends Agent {
 			@Override
 			public int onEnd() {
 				try {
-					FileOutputStream csvOut = new FileOutputStream(new File(csvPath + simulationNumber + ".csv"));
+					//FileOutputStream csvOut = new FileOutputStream(new File(csvPath + simulationNumber + ".csv"));
 					FileOutputStream generalCsv = new FileOutputStream(new File(genericCSV), true);
 					// item, sellerName, sellerDelay, average, variance, initialValue, itemAuctions,
 					// itemInterest, priceSold (-1 if not sold)
@@ -290,7 +290,7 @@ public class SimulatorAgent extends Agent {
 								+ interest + ", " + soldFor + ", " + sold + "\n").getBytes();
 						
 						generalCsv.write(strBytes);
-						csvOut.write(strBytes);
+						//csvOut.write(strBytes);
 					}
 
 				} catch (IOException e) {
