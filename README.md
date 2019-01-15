@@ -2,7 +2,7 @@
 
 The main project was divided into 2 smaller projects.
 
-The first one consisted in the design and implementation of the multi-agent system itself.
+The first one consisted in the design and implementation of the multi-agent system itself, implemented using the [JADE framework](http://jade.tilab.com/).
 
 The second one consisted in the collection of data from the execution of the system. Then, using data mining techniques we were asked to perform relevant classifications and regressions.
 
