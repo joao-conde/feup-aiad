@@ -1,15 +1,20 @@
 # Description
 
-No cenário em questão, um ou mais compradores possuem uma lista de produtos que pretendem comprar. Simultaneamente, vários vendedores anunciarão a venda de diversos produtos.
+The main project was divided into 2 smaller projects.
 
-Cada vendedor fixa um preço mínimo para cada produto que vende, sendo este o valor inicial do produto em leilão (English auction). O mesmo produto, oferecido por diferentes vendedores, pode ter preços diferentes.
+The first one consisted in the design and implementation of the multi-agent system itself.
 
-Cada comprador estará disposto a gastar um valor máximo por cada produto associado ao respetivo vendedor. Os compradores têm perfis diferentes e podem arriscar mais ou menos nestes leilões, definindo um valor máximo maior ou menor. O valor máximo que cada comprador se dispõe a gastar será também influenciado por diferentes métricas. Assim, o preço inicial do leilão, a reputação do vendedor e o tempo estimado de entrega do produto influenciarão a decisão do comprador.
+The second one consisted in the collection of data from the execution of the system. Then, using data mining techniques we were asked to perform relevant classifications and regressions.
 
-A reputação de um vendedor é dada pelas opiniões dos compradores do sistema que já lhe compraram algum produto. Caso não exista nenhuma transação prévia para o vendedor em questão, a sua reputação terá um valor inicial médio. A opinião de cada comprador do sistema sobre os vendedores aos quais já comprou algum produto é calculada com base no tempo prometido de entrega dos produtos comprados e no tempo realmente verificado.
 
-Sempre que um vendedor entra no sistema informa o InformationSystemAgent, que é responsável por manter registo de todos os vendedores existentes, bem como dos produtos que cada um deles está a vender.
+In project 1, a multi-agent system simulating an English auction was built.
 
-Existe um agente BidKeeper responsável por gerir os leilões já terminados e ainda não pagos. Este agente é importante para que se assegure que um leilão já terminado seja efetivamente completado. De facto, um comprador pode licitar em vários leilões ao mesmo tempo e, caso ganhe mais do que um leilão do mesmo produto, pode abdicar de um deles. O BidKeeper tem um tempo máximo para manter os leilões terminados mas ainda não pagos. Após esse período, o leilão é considerado não liquidado e o vendedor poderá iniciar novamente a venda do produto, reiniciando o leilão.
+1. Multiple buyers had a list of items they desired. Simultaneously, multiple sellers announced the auction of several items.
+2. Each seller fixed a minimal price for each item they sell and uses it as the initial value for the auction. Thus, the same item, may have different prices according to each seller.
+3. The maximum value a buyer is willing to spend on an item is influenced by some parameters such as the auction price, the seller's reputation in the market and the estimated delivery time of the item after buying it.
+4. The reputation of a seller is given by the opinions of the system' buyers that previously bought something from him. 
+5. The reputation of a seller decreases if he fails to deliver items on the time estabilished upon purchase.
 
-O cliente mantém-se no sistema até conseguir comprar todos os produtos que pretende ou até atingir o tempo limite determinado ou ficar sem orçamento.
+
+In project 2 we ran the system multiple times, extracting multiple parameters and accumulating aprox. 65 000 lines of data. 
+We've then feed the data into our own RapidMiner processes to perform a classification on wether a seller sold an item or not and a regresion to determine at which price he could sell it.
